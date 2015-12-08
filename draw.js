@@ -10,7 +10,6 @@ d3.json("content.json",
         run_data = data.filter(function (data){
             return data.type == "Run" && data.average_speed > 2.2352 //12 min / mi;
         });
-        console.log(run_data)
         data_viz(run_data)
     }
 );
@@ -46,18 +45,28 @@ function data_viz(incoming_data) {
         .range([margin,w-margin]);
     var x_scale = time_ramp
     // var y_scale = d3.scale.linear().domain([0, max_average_speed]).range([-(h+margin),h])
-    console.log(max_average_speed)
     var y_scale = d3.scale.linear().domain([min_average_speed, max_average_speed]).range([500, 0])
     var radius_scale = d3.scale.linear().domain([0, max_distance_miles]).range([1,20])
 
-    var runG = d3.select("svg")
+    d3.select("svg")
         .selectAll("circle")
         .data(incoming_data)
         .enter()
-        .append("circle")   
-        .attr("r", function(d) {return radius_scale(d.distance_miles)})
+        // .append("circle")  
+        .append("g")
+        .attr("class", "overallG") 
+        
+        .attr("transform",
+            function (d,i) {return "translate(" + time_ramp(d.run_time) + ", 0)"}
+        )
         .attr("cx", function(d,i) {return time_ramp(d.run_time);})
         .attr("cy", function(d) {return y_scale(d.average_min_per_mi);})
+
+    var runG = d3.selectAll("g.overallG");
+
+    runG
+        .append("circle")
+        .attr("r", function(d) {return radius_scale(d.distance_miles)})
         .style("stroke", "black")
         .style("stroke-width", "1px")
         .style("fill", function(d) {return color_scale(d.distance_miles)})
@@ -78,10 +87,14 @@ function data_viz(incoming_data) {
         .attr("transform", "translate("+margin+",0)")
         .call(y_axis)
 
-    yaxisg.selectAll("line").data(y_scale.ticks(64), function(d){return d;})
+    yaxisg.selectAll("line").data(y_scale.ticks(50), function(d){return d;})
         .enter()
         .append("line")
         .attr("class", "minor")
+        .attr("y1", y_scale)
+        .attr("y2", y_scale)
+        .attr("x1", 0)
+        .attr("x2", -10);
 
     var x_axis = d3.svg.axis().scale(x_scale).orient("bottom").ticks(10).tickSize(20,0)
     var xaxisg = d3.select("svg").append("g")
@@ -98,10 +111,17 @@ function data_viz(incoming_data) {
       .attr("y2", 10)
       .attr("x1", x_scale)
       .attr("x2", x_scale);
-
     // d3.selectAll("path.domain").style("fill", "none").style("stroke", "black");
     // d3.selectAll("line").style("stroke", "black");
 
+
+    runG.on("mouseover", highlightRegion);
+    function highlightRegion(d) {   
+        d3.selectAll("g.overallG").select("circle")
+            .style("fill", function(p) {
+                return p.region == d.region ? "red" : "gray";
+            });
+    };
 }
 
 
