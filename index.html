@@ -2,11 +2,43 @@
 <html>
 <head>
     <script src="d3.min.js" type="text/javascript"></script>
-    
 </head>
+<style>
+ 
+.axis text {
+  font: 10px sans-serif;
+}
+ 
+.axis path {
+  fill: none;
+  stroke: #000;
+  stroke-width: 2.5px;
+  shape-rendering: crispEdges;
+}
+ .axis line {
+  fill: none;
+  stroke: green;
+  stroke-width: 1.6px;
+}
+
+.axis .minor {
+  stroke: red;
+  stroke-width: 0.4px;
+}
+  /*
+line {
+  shape-rendering: crispEdges;
+  stroke: #fff;
+}
+path.domain {
+  fill: none;
+  stroke: black;
+}*/
+</style>
+
     <body>
         <div id="vizcontainer">
-            <svg style="width:1400px; height:500px; border:1px lightgray solid;"/>
+            <svg style="width:1400px; height:2550px; border:1px lightgray solid;"/>
         </div>
     </body>
     <script src="draw.js" type="text/javascript"></script>
