@@ -80,13 +80,6 @@ function data_viz(incoming_data) {
             .style("fill", function(d){return color_scale(d.distance_miles)})
     });
 
-
-    // runG.append("text")
-    //     .style("text-anchor", "middle")
-    //     .attr("y", 30)
-    //     .style("font-size", "10px")
-    //     .text(function(d) {return d.name});
-
     d3.select("body").selectAll("div.cities")
         .data(run_data)
         .enter()
@@ -94,7 +87,11 @@ function data_viz(incoming_data) {
         .attr("class","runs")
         .html(function(d,i) { return d.name; })
 
-    // Draw axis
+    /*
+    
+    Draw axis
+
+    */
     var y_axis = d3.svg.axis().scale(y_scale).orient("left")
     var yaxisg = d3.select("svg").append("g")
         .attr("id", "yAxisG")
@@ -123,9 +120,11 @@ function data_viz(incoming_data) {
       .attr("x1", x_scale)
       .attr("x2", x_scale);
 
-    // d3.selectAll("path.domain").style("fill", "none").style("stroke", "black");
-    // d3.selectAll("line").style("stroke", "black");
 
+      runG.append("title")
+      .text(function(d){
+        return d.name
+      })
 }
 
 
