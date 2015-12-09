@@ -48,7 +48,7 @@ function data_viz(incoming_data) {
     var y_scale = d3.scale.linear().domain([min_average_speed, max_average_speed]).range([500, 0])
     var radius_scale = d3.scale.linear().domain([0, max_distance_miles]).range([1,20])
 
-    d3.select("svg")    
+    var svg = d3.select("svg")    
         .append("g")
         .attr("id", "runsG")
         .selectAll("g")
@@ -81,14 +81,18 @@ function data_viz(incoming_data) {
         d3.select("#tooltip")
             .style("left", x + "px")
             .style("top", y + "px")
-            .select("#run_title").text(d.name)
+
+        d3.select("#tooltip #run_title a")
+            .text(d.name)
+            .attr({"xlink:href": "http://www.skiptomyliu.com"})
+            // .on("click", function(d){alert('hi')})
+
         d3.select("#tooltip #run_date")
            .text(date_time)
         d3.select("#tooltip #run_distance")
            .text(parseFloat(d.distance_miles).toPrecision(3))
         d3.select("#tooltip #run_pace")
            .text(d.average_min_per_mi.toPrecision(3))
-        
         d3.select("#tooltip").classed("hidden", false);
     }
 
@@ -96,8 +100,12 @@ function data_viz(incoming_data) {
         d3.select(this).classed("inactive",true)
         d3.select(d3.event.target).transition().duration(500)
             .style("fill", function(d){return color_scale(d.distance_miles)})
-        d3.select("#tooltip").classed("hidden", true);
+        // d3.select("#tooltip").classed("hidden", true);
     });
+
+    d3.select("#vizcontainer").on("click", function(d) { 
+        d3.select("#tooltip").classed("hidden", true)
+        });
 
     d3.select("body").selectAll("div.cities")
         .data(run_data)
