@@ -72,12 +72,31 @@ function data_viz(incoming_data) {
         d3.select(d3.event.target).classed("active",true)
         // d3.select(d3.event.target).transition().duration(500)
             .style("fill", function(){return "red"})
+
+        var coord = (d3.transform(d3.select(this).attr("transform"))).translate
+        var x = coord[0]
+        var y = coord[1]
+
+        var date_time = (d.run_time.getMonth()+1)+"/"+d.run_time.getDate() + "/" + d.run_time.getFullYear()
+        d3.select("#tooltip")
+            .style("left", x + "px")
+            .style("top", y + "px")
+            .select("#run_title").text(d.name)
+        d3.select("#tooltip #run_date")
+           .text(date_time)
+        d3.select("#tooltip #run_distance")
+           .text(parseFloat(d.distance_miles).toPrecision(3))
+        d3.select("#tooltip #run_pace")
+           .text(d.average_min_per_mi.toPrecision(3))
+        
+        d3.select("#tooltip").classed("hidden", false);
     }
 
     runG.on("mouseout", function(){
         d3.select(this).classed("inactive",true)
         d3.select(d3.event.target).transition().duration(500)
             .style("fill", function(d){return color_scale(d.distance_miles)})
+        d3.select("#tooltip").classed("hidden", true);
     });
 
     d3.select("body").selectAll("div.cities")
@@ -120,11 +139,6 @@ function data_viz(incoming_data) {
       .attr("x1", x_scale)
       .attr("x2", x_scale);
 
-
-      runG.append("title")
-      .text(function(d){
-        return d.name
-      })
 }
 
 
