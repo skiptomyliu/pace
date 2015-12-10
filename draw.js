@@ -158,18 +158,31 @@ function data_viz(incoming_data) {
         .attr("x2", x_scale)
 
     // Moving average
+    // XXX Need to move each run into its own bin, right now it's taking it by run
+
+    /*
+    
+    To calculate the weighted average:
+    weighted_pace = (dist1*pace1+ dist2*pace2)/(dist1+dist2)    
+
+    */
+
     var points = 5
-    weighted_bin = []
+    var weighted_bin = []
     for(i=0; i<incoming_data.length; i+=points){
-        cur_avg = 0
+        var bin_pace = 0
+        var bin_mileage = 0
+
         for (j=0; j<points; j++){
             if (i+j < incoming_data.length){
-                cur_avg+=incoming_data[(i+j)].average_min_per_mi/points
+                current_run = incoming_data[i+j]
+                // cur_avg+=incoming_data[(i+j)].average_min_per_mi/points
+                bin_pace = (bin_mileage * bin_pace + current_run.distance_miles * current_run.average_min_per_mi)/(bin_mileage + current_run.distance_miles)
+                bin_mileage += current_run.distance_miles
             }
         }
-        weighted_bin.push(cur_avg)
+        weighted_bin.push(bin_pace)
     }
-
     console.log(weighted_bin)
     var weighted_ramp = d3.scale.linear()
         .domain([0, weighted_bin.length])
