@@ -98,7 +98,7 @@ function data_viz(incoming_data) {
         var tooltipRect = tooltip.node().getBoundingClientRect()
 
         d3.select("#tooltip")
-            .style("left", (x-tooltipRect.width/2.01) + "px")
+            .style("left", (x-tooltipRect.width/2.5) + "px")
             .style("top", y-tooltipRect.height + "px")
     }
 
@@ -108,6 +108,10 @@ function data_viz(incoming_data) {
             .style("fill", function(d){return color_scale(d.distance_miles)})
         // d3.select("#tooltip").classed("hidden", true);
     });
+
+    runG.on("click", function(d){
+        window.open("https://strava.com/activities/"+d.id, '_blank');
+    })
 
     d3.select("#vizcontainer").on("click", function(d) { 
         d3.select("#tooltip").classed("hidden", true)
@@ -153,15 +157,12 @@ function data_viz(incoming_data) {
         .attr("x1", x_scale)
         .attr("x2", x_scale)
 
-    
-
     // Moving average
     var points = 5
     weighted_bin = []
     for(i=0; i<incoming_data.length; i+=points){
         cur_avg = 0
         for (j=0; j<points; j++){
-
             if (i+j < incoming_data.length){
                 cur_avg+=incoming_data[(i+j)].average_min_per_mi/points
             }
@@ -181,8 +182,6 @@ function data_viz(incoming_data) {
         .y(function(d){
             return y_scale(d)
         })
-
-    
 
     d3.select("svg")
         .append("path")
