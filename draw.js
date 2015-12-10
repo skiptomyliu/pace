@@ -10,7 +10,7 @@ d3.json("content.json",
         run_data = data.filter(function (data){
             return data.type == "Run" && data.average_speed > 2.2352 //12 min / mi;
         });
-        console.log(run_data)
+        // console.log(run_data)
         data_viz(run_data)
     }
 );
@@ -42,7 +42,6 @@ function data_viz(incoming_data) {
     var color_scale = d3.scale.linear().domain([0, max_distance_miles]).range(["white", "#990000"])
     var time_ramp = d3.time.scale()
         .domain(start_end)
-        // .nice(d3.time.week)
         .range([margin,w-margin]);
     var x_scale = time_ramp
     var y_scale = d3.scale.linear().domain([min_average_speed, max_average_speed]).range([500, 0])
@@ -68,7 +67,6 @@ function data_viz(incoming_data) {
         .style("fill", function(d) {return color_scale(d.distance_miles)})
 
     runG.on("mouseover", highlightRegion);
-
 
     function highlightRegion(d) {
         d3.select(d3.event.target).classed("active",true)
@@ -147,13 +145,51 @@ function data_viz(incoming_data) {
         .call(x_axis)
 
     xaxisg.selectAll("line").data(x_scale.ticks(64), function(d) { return d; })
-      .enter()
-      .append("line")
-      .attr("class", "minor")
-      .attr("y1", 0)
-      .attr("y2", 10)
-      .attr("x1", x_scale)
-      .attr("x2", x_scale);
+        .enter()
+        .append("line")
+        .attr("class", "minor")
+        .attr("y1", 0)
+        .attr("y2", 10)
+        .attr("x1", x_scale)
+        .attr("x2", x_scale)
+
+    
+
+    // Moving average
+    var points = 5
+    weighted_bin = []
+    for(i=0; i<incoming_data.length; i+=points){
+        cur_avg = 0
+        for (j=0; j<points; j++){
+
+            if (i+j < incoming_data.length){
+                cur_avg+=incoming_data[(i+j)].average_min_per_mi/points
+            }
+        }
+        weighted_bin.push(cur_avg)
+    }
+
+    console.log(weighted_bin)
+    var weighted_ramp = d3.scale.linear()
+        .domain([0, weighted_bin.length])
+        .range([margin,w-margin]);
+
+    var weightedLine = d3.svg.line()
+        .x(function(d,i) {
+            return weighted_ramp(i)
+        })
+        .y(function(d){
+            return y_scale(d)
+        })
+
+    
+
+    d3.select("svg")
+        .append("path")
+        .attr("d", weightedLine(weighted_bin))
+        .attr("fill", "none")
+        .attr("stroke", "blue")
+        .attr("stroke-width", 2);
 
 }
 
