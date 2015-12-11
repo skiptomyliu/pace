@@ -4,22 +4,6 @@ var w = 1400;
 var h = 500;
 var margin = 40;
 
-
-var zoom = d3.behavior.zoom()
-    .scaleExtent([1, 10])
-    .on("zoom", zoomed);
-
-function zoomed() {
-  d3.select("#vizcontainer svg g").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
-}
-
-var svg = d3.select("#vizcontainer")
-    .append("svg")
-        .attr("width", w)
-        .attr("height", h)
-        .call(zoom)
-        .append("g")
-
 d3.json("content.json", 
     function(error, data) {
         // Get runs only
@@ -59,11 +43,72 @@ function data_viz(incoming_data) {
     var time_ramp = d3.time.scale()
         .domain(start_end)
         .range([margin,w-margin]);
-    var x_scale = time_ramp
+    var x_scale = time_ramp,
+        x = x_scale.copy()
     var y_scale = d3.scale.linear().domain([min_average_speed, max_average_speed]).range([500, 0])
+        // y = y_scale.copy()
     var radius_scale = d3.scale.linear().domain([0, max_distance_miles]).range([1,20])
-
     
+// var zoom = d3.behavior.zoom()
+//     .scaleExtent([1, Infinity])
+//     .on("zoom", zoomed);
+
+// function zoomed() {
+//   d3.select("#vizcontainer svg g").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+// }
+
+var zoom = d3.behavior.zoom()
+    .scaleExtent([1, Infinity])
+    .x(x_scale)
+    .y(y_scale)
+    .on("zoom", refresh);
+
+var svg = d3.select("#vizcontainer")
+    .append("svg")
+        .attr("width", w)
+        .attr("height", h+margin)
+        .call(zoom)
+        .append("g")
+
+    /*
+    
+    Draw axis
+
+    */
+    var y_axis = d3.svg.axis().scale(y_scale).orient("left")
+    var yaxisg = d3.select("svg g").append("g")
+        .attr("id", "yAxisG")
+        .attr("class", "y axis")
+        .attr("transform", "translate("+margin+",0)")
+        .call(y_axis)
+
+    yaxisg.selectAll("line").data(y_scale.ticks(64), function(d){return d;})
+        .enter()
+        .append("line")
+        .attr("class", "minor")
+
+    var x_axis = d3.svg.axis().scale(x_scale).orient("bottom").ticks(10).tickSize(20,0)
+    var xaxisg = d3.select("svg g").append("g")
+        .attr("id", "xAxisG")
+        .attr("class", "x axis")
+        .attr("transform","translate(0,"+(h)+")")
+        .call(x_axis)
+
+    xaxisg.selectAll("line").data(x_scale.ticks(64), function(d) { return d; })
+        .enter()
+        .append("line")
+        .attr("class", "minor")
+        .attr("y1", 0)
+        .attr("y2", 10)
+        .attr("x1", x_scale)
+        .attr("x2", x_scale)
+
+
+    function refresh() {
+      svg.select("#xAxisG").call(x_axis);
+      svg.select("#yAxisG").call(y_axis);
+    }
+
     svg    
         .append("g")
         .attr("id", "runsG")
@@ -77,7 +122,6 @@ function data_viz(incoming_data) {
         })
         
 
-   
 
     var runG = d3.selectAll("g.overallG")
     runG.append("circle")
@@ -90,9 +134,7 @@ function data_viz(incoming_data) {
 
     function highlightRegion(d) {
         d3.select(d3.event.target).classed("active",true)
-        // d3.select(d3.event.target).transition().duration(500)
             .style("fill", function(){return "red"})
-
             this.parentElement.appendChild(this);
 
         var coord = (d3.transform(d3.select(this).attr("transform"))).translate
@@ -128,7 +170,6 @@ function data_viz(incoming_data) {
         d3.select(this).classed("inactive",true)
         d3.select(d3.event.target).transition().duration(500)
             .style("fill", function(d){return color_scale(d.distance_miles)})
-        // d3.select("#tooltip").classed("hidden", true);
     });
 
     runG.on("click", function(d){
@@ -136,11 +177,9 @@ function data_viz(incoming_data) {
     })
 
     d3.select("#vizcontainer")
-
         .on("click", function(d) { 
             d3.select("#tooltip").classed("hidden", true)
         });
-
 
 
     d3.select("body").selectAll("div.cities")
@@ -150,42 +189,9 @@ function data_viz(incoming_data) {
         .attr("class","runs")
         .html(function(d,i) { return d.name; })
 
-    /*
     
-    Draw axis
-
-    */
-    var y_axis = d3.svg.axis().scale(y_scale).orient("left")
-    var yaxisg = d3.select("svg g").append("g")
-        .attr("id", "yAxisG")
-        .attr("class", "y axis")
-        .attr("transform", "translate("+margin+",0)")
-        .call(y_axis)
-
-    yaxisg.selectAll("line").data(y_scale.ticks(64), function(d){return d;})
-        .enter()
-        .append("line")
-        .attr("class", "minor")
-
-    var x_axis = d3.svg.axis().scale(x_scale).orient("bottom").ticks(10).tickSize(20,0)
-    var xaxisg = d3.select("svg g").append("g")
-        .attr("id", "xAxisG")
-        .attr("class", "x axis")
-        .attr("transform","translate(0,"+(h)+")")
-        .call(x_axis)
-
-    xaxisg.selectAll("line").data(x_scale.ticks(64), function(d) { return d; })
-        .enter()
-        .append("line")
-        .attr("class", "minor")
-        .attr("y1", 0)
-        .attr("y2", 10)
-        .attr("x1", x_scale)
-        .attr("x2", x_scale)
 
     // Moving average
-    // XXX Need to move each run into its own bin, right now it's taking it by run
-
     /*
     
     To calculate the weighted average:
@@ -227,6 +233,7 @@ function data_viz(incoming_data) {
         .attr("fill", "none")
         .attr("stroke", "blue")
         .attr("stroke-width", 2);
+
 
 }
 
