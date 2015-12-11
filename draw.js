@@ -49,9 +49,6 @@ function data_viz(incoming_data) {
         // y = y_scale.copy()
     var radius_scale = d3.scale.linear().domain([0, max_distance_miles]).range([1,20])
     
-// var zoom = d3.behavior.zoom()
-//     .scaleExtent([1, Infinity])
-//     .on("zoom", zoomed);
 
 // function zoomed() {
 //   d3.select("#vizcontainer svg g").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
@@ -104,9 +101,19 @@ var svg = d3.select("#vizcontainer")
         .attr("x2", x_scale)
 
 
+    function translate_runs(d,i){
+        return "translate("+time_ramp(d.run_time)+","+y_scale(d.average_min_per_mi)+")"
+    }
+
     function refresh() {
       svg.select("#xAxisG").call(x_axis);
       svg.select("#yAxisG").call(y_axis);
+
+      // d3.select("#vizcontainer svg g").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+      d3.selectAll("#runsG g")
+        .data(incoming_data)
+        .enter()
+        .attr("transform", translate_runs);
     }
 
     svg    
@@ -117,9 +124,7 @@ var svg = d3.select("#vizcontainer")
         .enter()
         .append("g")
         .attr("class", "overallG")
-        .attr("transform", function(d,i) {
-            return "translate("+time_ramp(d.run_time)+","+y_scale(d.average_min_per_mi)+")"
-        })
+        .attr("transform", translate_runs)
         
 
 
@@ -182,12 +187,13 @@ var svg = d3.select("#vizcontainer")
         });
 
 
-    d3.select("body").selectAll("div.cities")
-        .data(run_data)
-        .enter()
-        .append("div")
-        .attr("class","runs")
-        .html(function(d,i) { return d.name; })
+    // Testing
+    // d3.select("body").selectAll("div.cities")
+    //     .data(run_data)
+    //     .enter()
+    //     .append("div")
+    //     .attr("class","runs")
+    //     .html(function(d,i) { return d.name; })
 
     
 
