@@ -4,6 +4,22 @@ var w = 1400;
 var h = 500;
 var margin = 40;
 
+
+var zoom = d3.behavior.zoom()
+    .scaleExtent([1, 10])
+    .on("zoom", zoomed);
+
+function zoomed() {
+  d3.select("#vizcontainer svg g").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+}
+
+var svg = d3.select("#vizcontainer")
+    .append("svg")
+        .attr("width", w)
+        .attr("height", h)
+        .call(zoom)
+        .append("g")
+
 d3.json("content.json", 
     function(error, data) {
         // Get runs only
@@ -47,7 +63,8 @@ function data_viz(incoming_data) {
     var y_scale = d3.scale.linear().domain([min_average_speed, max_average_speed]).range([500, 0])
     var radius_scale = d3.scale.linear().domain([0, max_distance_miles]).range([1,20])
 
-    var svg = d3.select("svg")    
+    
+    svg    
         .append("g")
         .attr("id", "runsG")
         .selectAll("g")
@@ -59,6 +76,9 @@ function data_viz(incoming_data) {
             return "translate("+time_ramp(d.run_time)+","+y_scale(d.average_min_per_mi)+")"
         })
         
+
+   
+
     var runG = d3.selectAll("g.overallG")
     runG.append("circle")
         .attr("r", function(d) {return radius_scale(d.distance_miles)})
@@ -72,6 +92,8 @@ function data_viz(incoming_data) {
         d3.select(d3.event.target).classed("active",true)
         // d3.select(d3.event.target).transition().duration(500)
             .style("fill", function(){return "red"})
+
+            this.parentElement.appendChild(this);
 
         var coord = (d3.transform(d3.select(this).attr("transform"))).translate
         var x = coord[0]
@@ -113,9 +135,13 @@ function data_viz(incoming_data) {
         window.open("https://strava.com/activities/"+d.id, '_blank');
     })
 
-    d3.select("#vizcontainer").on("click", function(d) { 
-        d3.select("#tooltip").classed("hidden", true)
+    d3.select("#vizcontainer")
+
+        .on("click", function(d) { 
+            d3.select("#tooltip").classed("hidden", true)
         });
+
+
 
     d3.select("body").selectAll("div.cities")
         .data(run_data)
@@ -130,7 +156,7 @@ function data_viz(incoming_data) {
 
     */
     var y_axis = d3.svg.axis().scale(y_scale).orient("left")
-    var yaxisg = d3.select("svg").append("g")
+    var yaxisg = d3.select("svg g").append("g")
         .attr("id", "yAxisG")
         .attr("class", "y axis")
         .attr("transform", "translate("+margin+",0)")
@@ -142,7 +168,7 @@ function data_viz(incoming_data) {
         .attr("class", "minor")
 
     var x_axis = d3.svg.axis().scale(x_scale).orient("bottom").ticks(10).tickSize(20,0)
-    var xaxisg = d3.select("svg").append("g")
+    var xaxisg = d3.select("svg g").append("g")
         .attr("id", "xAxisG")
         .attr("class", "x axis")
         .attr("transform","translate(0,"+(h)+")")
@@ -167,7 +193,7 @@ function data_viz(incoming_data) {
 
     */
 
-    var points = 5
+    var points = 7
     var weighted_bin = []
     for(i=0; i<incoming_data.length; i+=points){
         var bin_pace = 0
@@ -176,7 +202,6 @@ function data_viz(incoming_data) {
         for (j=0; j<points; j++){
             if (i+j < incoming_data.length){
                 current_run = incoming_data[i+j]
-                // cur_avg+=incoming_data[(i+j)].average_min_per_mi/points
                 bin_pace = (bin_mileage * bin_pace + current_run.distance_miles * current_run.average_min_per_mi)/(bin_mileage + current_run.distance_miles)
                 bin_mileage += current_run.distance_miles
             }
@@ -196,7 +221,7 @@ function data_viz(incoming_data) {
             return y_scale(d)
         })
 
-    d3.select("svg")
+    d3.select("svg g")
         .append("path")
         .attr("d", weightedLine(weighted_bin))
         .attr("fill", "none")
