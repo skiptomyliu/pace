@@ -1,5 +1,4 @@
 
-
 var w = 1400;
 var h = 500;
 var margin = 40;
@@ -43,29 +42,28 @@ function data_viz(incoming_data) {
     var time_ramp = d3.time.scale()
         .domain(start_end)
         .range([margin,w-margin]);
-    var x_scale = time_ramp,
-        x = x_scale.copy()
+    var x_scale = time_ramp
+        // x = x_scale.copy()
     var y_scale = d3.scale.linear().domain([min_average_speed, max_average_speed]).range([500, 0])
         // y = y_scale.copy()
     var radius_scale = d3.scale.linear().domain([0, max_distance_miles]).range([1,20])
-    
 
-// function zoomed() {
-//   d3.select("#vizcontainer svg g").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
-// }
+    var zoom = d3.behavior.zoom()
+        .scaleExtent([1, Infinity])
+        .x(x_scale)
+        // .y(y_scale)
+        .on("zoom", refresh);
 
-var zoom = d3.behavior.zoom()
-    .scaleExtent([1, Infinity])
-    .x(x_scale)
-    .y(y_scale)
-    .on("zoom", refresh);
+    var svg = d3.select("#vizcontainer")
+        .append("svg")
+            .attr("width", w)
+            .attr("height", h+margin)
+            .call(zoom)
+            .append("g")
 
-var svg = d3.select("#vizcontainer")
-    .append("svg")
-        .attr("width", w)
-        .attr("height", h+margin)
-        .call(zoom)
-        .append("g")
+    // function zoomed() {
+    //   d3.select("#vizcontainer svg g").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+    // }
 
     /*
     
@@ -91,29 +89,23 @@ var svg = d3.select("#vizcontainer")
         .attr("transform","translate(0,"+(h)+")")
         .call(x_axis)
 
-    xaxisg.selectAll("line").data(x_scale.ticks(64), function(d) { return d; })
-        .enter()
-        .append("line")
-        .attr("class", "minor")
-        .attr("y1", 0)
-        .attr("y2", 10)
-        .attr("x1", x_scale)
-        .attr("x2", x_scale)
-
-
     function translate_runs(d,i){
         return "translate("+time_ramp(d.run_time)+","+y_scale(d.average_min_per_mi)+")"
     }
 
     function refresh() {
-      svg.select("#xAxisG").call(x_axis);
-      svg.select("#yAxisG").call(y_axis);
+        svg.select("#xAxisG").call(x_axis);
+        svg.select("#yAxisG").call(y_axis);
 
       // d3.select("#vizcontainer svg g").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
-      d3.selectAll("#runsG g")
-        .data(incoming_data)
-        .enter()
-        .attr("transform", translate_runs);
+
+        var days = diff_days(x_scale.domain()[0], x_scale.domain()[1])
+      // console.log(days)
+        if (days < 10) {
+            console.log(days)
+        }
+        d3.selectAll("#runsG g")
+            .attr("transform", translate_runs);
     }
 
     svg    
@@ -125,7 +117,6 @@ var svg = d3.select("#vizcontainer")
         .append("g")
         .attr("class", "overallG")
         .attr("transform", translate_runs)
-        
 
 
     var runG = d3.selectAll("g.overallG")
@@ -195,11 +186,8 @@ var svg = d3.select("#vizcontainer")
     //     .attr("class","runs")
     //     .html(function(d,i) { return d.name; })
 
-    
-
     // Moving average
     /*
-    
     To calculate the weighted average:
     weighted_pace = (dist1*pace1+ dist2*pace2)/(dist1+dist2)    
 
@@ -220,10 +208,14 @@ var svg = d3.select("#vizcontainer")
         }
         weighted_bin.push(bin_pace)
     }
-    console.log(weighted_bin)
     var weighted_ramp = d3.scale.linear()
         .domain([0, weighted_bin.length])
         .range([margin,w-margin]);
+
+    function diff_days(date1, date2){
+        var oneDay = 86400000; // milliseconds in 1 day
+        return Math.round(Math.abs((date1.getTime() - date2.getTime())/(oneDay)));
+    }
 
     var weightedLine = d3.svg.line()
         .x(function(d,i) {
