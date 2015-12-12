@@ -9,19 +9,40 @@ d3.json("content.json",
         run_data = data.filter(function (data){
             return data.type == "Run" && data.average_speed > 2.2352 //12 min / mi;
         });
-        // console.log(run_data)
-        data_viz(run_data)
+
+        // Add additional attributes to our run object
+        data.forEach(function (el){
+            el.run_time = new Date(el.start_date_local)
+            el.average_min_per_mi = 26.8224/el.average_speed // Convert to min/mi
+            el.distance_miles = el.distance * 0.000621371
+        });
+
+        var bubble_days = 7
+        function bubble(data) {
+            var bubble = []
+            data.forEach(function(el){
+                // var prev_run = bubble[bubble.length-1]
+                // console.log(prev_run.run_time)
+                // debugger;
+                if (bubble.length) {
+                    var prev_run = bubble[bubble.length-1]
+                    // if diff_days(el.run_time, prev_run.run_time) <= bubble_days {
+                        // bubble[bubble.length-1] = combine(prev_run, el)
+                    // }
+                }
+
+                // console.log(diff_days())
+                bubble.push(el)
+            });
+            return bubble
+        }
+        bubble_data = bubble(run_data)
+        data_viz(bubble_data)
     }
 );
 
 // Draw data
 function data_viz(incoming_data) {
-    incoming_data.forEach(function (el){
-        el.run_time = new Date(el.start_date_local)
-        el.average_min_per_mi = 26.8224/el.average_speed // Convert to min/mi
-        el.distance_miles = el.distance * 0.000621371
-    });
-
     var max_average_speed = d3.max(incoming_data, function(el){
         return el.average_min_per_mi
     });
@@ -30,13 +51,14 @@ function data_viz(incoming_data) {
         return el.average_min_per_mi
     })
 
-    var start_end = d3.extent(incoming_data, function(el){
+    var start_end = d3.extent(incoming_data, function(el){ // get min and max start time
         return el.run_time
     });
 
     var max_distance_miles = d3.max(incoming_data, function(el){
         return el.distance_miles
-    })
+    })    
+
 
     var color_scale = d3.scale.linear().domain([0, max_distance_miles]).range(["white", "#990000"])
     var time_ramp = d3.time.scale()
@@ -115,11 +137,11 @@ function data_viz(incoming_data) {
         .data(incoming_data)
         .enter()
         .append("g")
-        .attr("class", "overallG")
+        .attr("class", "circleg")
         .attr("transform", translate_runs)
 
 
-    var runG = d3.selectAll("g.overallG")
+    var runG = d3.selectAll("g.circleg")
     runG.append("circle")
         .attr("r", function(d) {return radius_scale(d.distance_miles)})
         .style("stroke", "black")
@@ -202,7 +224,7 @@ function data_viz(incoming_data) {
         for (j=0; j<points; j++){
             if (i+j < incoming_data.length){
                 current_run = incoming_data[i+j]
-                bin_pace = (bin_mileage * bin_pace + current_run.distance_miles * current_run.average_min_per_mi)/(bin_mileage + current_run.distance_miles)
+                bin_pace = avg_pace(bin_mileage, bin_pace, current_run.distance_miles, current_run.average_min_per_mi)
                 bin_mileage += current_run.distance_miles
             }
         }
