@@ -1,6 +1,9 @@
 
 
 function diff_days(date1, date2){
+	if (typeof date1 == "undefined" || typeof date2 == "undefined")
+		return 0
+
     var oneDay = 86400000; // milliseconds in 1 day
     return Math.round(Math.abs((date1.getTime() - date2.getTime())/(oneDay)));
 }

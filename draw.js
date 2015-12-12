@@ -3,6 +3,23 @@ var w = 1400;
 var h = 500;
 var margin = 40;
 
+function BubbledRuns () {
+    this.average_min_per_mi = 0
+    this.distance_miles = 0
+    this.run_time
+    this.run_time_end
+    this.runs = []
+    this.addRun = function(run) {
+        if (!(this.runs.length)){
+            this.run_time = run.run_time
+        }
+        this.average_min_per_mi = avg_pace(this.distance_miles, this.average_min_per_mi, 
+            run.distance_miles, run.average_min_per_mi )
+        this.distance_miles += run.distance_miles
+        this.runs.push(run)
+    }
+}
+
 d3.json("content.json", 
     function(error, data) {
         // Get runs only
@@ -17,24 +34,25 @@ d3.json("content.json",
             el.distance_miles = el.distance * 0.000621371
         });
 
-        var bubble_days = 7
+        var bubble_days = .001
         function bubble(data) {
-            var bubble = []
+            var bubbles = []
+            var br = new BubbledRuns()
+            bubbles.push(br)
             data.forEach(function(el){
-                // var prev_run = bubble[bubble.length-1]
-                // console.log(prev_run.run_time)
-                // debugger;
-                if (bubble.length) {
-                    var prev_run = bubble[bubble.length-1]
-                    // if diff_days(el.run_time, prev_run.run_time) <= bubble_days {
-                        // bubble[bubble.length-1] = combine(prev_run, el)
-                    // }
+                if (bubbles.length) {
+                    var bubble = bubbles[bubbles.length-1]
+                    if (diff_days(el.run_time, bubble.run_time) <= bubble_days) {
+                        bubble.addRun(el)
+                    } else {
+                        bubble.run_time_end = el.run_time
+                        var br = new BubbledRuns()
+                        br.addRun(el)
+                        bubbles.push(br)
+                    }
                 }
-
-                // console.log(diff_days())
-                bubble.push(el)
             });
-            return bubble
+            return bubbles
         }
         bubble_data = bubble(run_data)
         data_viz(bubble_data)
@@ -122,10 +140,6 @@ function data_viz(incoming_data) {
       // d3.select("#vizcontainer svg g").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
 
         var days = diff_days(x_scale.domain()[0], x_scale.domain()[1])
-      // console.log(days)
-        if (days < 10) {
-            console.log(days)
-        }
         d3.selectAll("#runsG g")
             .attr("transform", translate_runs);
     }
@@ -168,9 +182,12 @@ function data_viz(incoming_data) {
         d3.select("#tooltip a")
             .attr({"href": "https://strava.com/activities/"+d.id})
             
-        var date_time = (d.run_time.getMonth()+1)+"/"+d.run_time.getDate() + "/" + d.run_time.getFullYear()
+        var date_time = (d.run_time.getMonth()+1)+"/"+d.run_time.getDate()+"/"+d.run_time.getFullYear()
+        var date_time_end = (d.run_time_end.getMonth()+1)+"/"+d.run_time_end.getDate()+"/"+d.run_time_end.getFullYear()
         d3.select("#tooltip #run_date")
            .text(date_time)
+        d3.select("#tooltip #run_date_end")
+            .text(date_time_end)
         d3.select("#tooltip #run_distance")
            .text(parseFloat(d.distance_miles).toPrecision(3))
         d3.select("#tooltip #run_pace")
