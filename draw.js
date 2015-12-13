@@ -49,23 +49,15 @@ function pop_bubbles(bubbles, days){
     bubbles.forEach(function(bubbled_run) {
         if(bubbled_run.runs.length > 1) { 
             if(diff_days(bubbled_run.runs[0].run_time, bubbled_run.runs[1].run_time) >= days){
-                while(bubbled_run.runs.length) {
-                    run = bubbled_run.runs.pop()
-                    runs.push(run)
-                }
                 popped_bubbles.push(bubbled_run)
             }
         }
         index++;
     })
-
-    // Put this into its own function
-    // popped bubble should return runs in the bubble
+    
     popped_bubbles.forEach(function(bubble){
-        var index = bubble_data.indexOf(bubble)
-        bubble_data.splice(index,1)
+        runs = runs.concat(pop_bubble(bubble))
     })
-    erase_bubbles(popped_bubbles)
     runs.sort(compare)
     return runs
 }
@@ -99,23 +91,15 @@ function fuse_bubbles(bubbles, days){
         }
 
         if (diff_days(ref_bubble.run_time, bubble.run_time) <= days && ref_bubble != bubble){
-            // console.log("fusing " + bubble.run_time+"+"+ref_bubble.run_time)
-            fused_runs = fused_runs.concat(bubble.runs)
             popped_bubbles.push(bubble)
             if (popped_bubbles.indexOf(ref_bubble) <= 0){
                 popped_bubbles.push(ref_bubble)
-                fused_runs = fused_runs.concat(ref_bubble.runs)
             }
         }   
     });
-
-    // Probably put this into its own method, to splice and erase
-    erase_bubbles(popped_bubbles)
     popped_bubbles.forEach(function(bubble){
-        var index = bubble_data.indexOf(bubble)
-        bubble_data.splice(index,1)
-    })   
-
+        fused_runs = fused_runs.concat(pop_bubble(bubble))
+    })
 
     //XXX: Do we need to sort?
 
@@ -156,28 +140,17 @@ function bubble(runs, days) {
 }
 
 function pop_bubble(bubbled_run){
-
     var runs = []
-    if(bubbled_run.runs.length > 1) { 
-        if(diff_days(bubbled_run.runs[0].run_time, bubbled_run.runs[1].run_time) >= days){
-            while(bubbled_run.runs.length) {
-                run = bubbled_run.runs.pop()
-                runs.push(run)
-            }
-            popped_bubbles.push(bubbled_run)
-        }
+    while(bubbled_run.runs.length) {
+        run = bubbled_run.runs.pop()
+        runs.push(run)
     }
     var index = bubble_data.indexOf(bubbled_run)
     bubble_data.splice(index,1)
     d3.selectAll("#"+bubbled_run.bubble_id).remove()
-    return bubbled_run.runs
+    return runs
 }
 
-function erase_bubbles(bubbles){
-    bubbles.forEach(function(bubbled_run){
-        d3.selectAll("#"+bubbled_run.bubble_id).remove()
-    })
-}
 var max_average_speed 
 var min_average_speed
 var start_end 
