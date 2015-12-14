@@ -13,7 +13,7 @@ function BubbledRuns() {
     this.run_time
     this.run_time_end
     this.runs = []
-    this.bubble_id = "b"+Math.ceil(Math.random()*10000000)
+    this.bubble_id = "b"+Math.ceil(Math.random()*100000000)
     this.addRun = function(run) {
         if (!(this.runs.length)){
             this.run_time = run.run_time
@@ -78,14 +78,13 @@ function fuse_bubbles(bubbles, days){
     var fused_runs = []
     var popped_bubbles = []
 
-    //Theres a double check because we reference the first bubble here...
+    //XXX
+    // Theres a double check on initial loop because we reference the first bubble here...
+    //  So it's checking itself on the first run
     // consider having the loop start at index 2 to avoid double checking
     var ref_bubble = bubbles[0] // anchor
-
-    console.log("@@@")
-    console.log(ref_bubble)
     var end_window_time = new Date(ref_bubble.run_time.getTime() - days * 86400000);
-    console.log("cur window " + ref_bubble.run_time + " - " + end_window_time)
+    // console.log("cur window " + ref_bubble.run_time + " - " + end_window_time)
 
     bubbles.forEach(function(bubble){
         // console.log(bubble)
@@ -97,21 +96,14 @@ function fuse_bubbles(bubbles, days){
         if (diff_days(ref_bubble.run_time, bubble.run_time) <= days && ref_bubble != bubble){           
 
             if (popped_bubbles.indexOf(ref_bubble) <= 0){
-                console.log("ref")
-                console.log(ref_bubble)
                 popped_bubbles.push(ref_bubble)
             }
             if(popped_bubbles.indexOf(bubble)<=0){
-                console.log(bubble)
                 popped_bubbles.push(bubble)
             }
         }   
     });
     // popped_bubbles.sort(compare)
-
-    console.log("@@@@")
-    console.log(popped_bubbles.length)
-    console.log("@@@@")
 
     popped_bubbles.forEach(function(bubble){
         fused_runs = fused_runs.concat(pop_bubble(bubble))
@@ -353,16 +345,16 @@ function data_viz(incoming_data) {
             var runs = pop_bubbles(bubble_data, .00000001)
             if (runs.length) { 
                 console.log(runs)
-                var bubble_data2 = bubble(runs, .00000001)
+                var bubble_data2 = bubble(runs, 2)
                 bubble_data = bubble_data.concat(bubble_data2)
                 bubble_data.sort(compare)
                 d3.select("#runsG").selectAll("g").data(bubble_data).exit().remove()
                 draw_bubbles(bubble_data)
             }  
         } else {            
-            var runs2 = fuse_bubbles(bubble_data, bubble_bins)
+            var runs2 = fuse_bubbles(bubble_data, 5)
             if (runs2.length){
-                var bubble_data2 = bubble(runs2, bubble_bins)
+                var bubble_data2 = bubble(runs2, 5)
                 bubble_data = bubble_data.concat(bubble_data2)
                 bubble_data.sort(compare)
 
