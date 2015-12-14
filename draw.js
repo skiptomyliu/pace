@@ -5,7 +5,7 @@ var margin = 40;
 var bubble_data;
 var all_runs;
 saved_scale = 1
-bubble_bins = 7
+bubble_bins = 4
 
 function BubbledRuns() {
     this.average_min_per_mi = 0
@@ -54,11 +54,9 @@ function pop_bubbles(bubbles, days){
         }
         index++;
     })
-
     popped_bubbles.forEach(function(bubble){
         runs = runs.concat(pop_bubble(bubble))
     })
-    console.log("runs: " + runs.length)
     runs.sort(compare)
     return runs
 }
@@ -80,33 +78,48 @@ function fuse_bubbles(bubbles, days){
     var fused_runs = []
     var popped_bubbles = []
 
+    //Theres a double check because we reference the first bubble here...
+    // consider having the loop start at index 2 to avoid double checking
     var ref_bubble = bubbles[0] // anchor
+
+    console.log("@@@")
+    console.log(ref_bubble)
     var end_window_time = new Date(ref_bubble.run_time.getTime() - days * 86400000);
-    // console.log("cur window " + ref_bubble.run_time + " - " + end_window_time)
+    console.log("cur window " + ref_bubble.run_time + " - " + end_window_time)
+
     bubbles.forEach(function(bubble){
+        // console.log(bubble)
         if (bubble.run_time < end_window_time){
             ref_bubble = bubble
             end_window_time = new Date(ref_bubble.run_time.getTime() - days * 86400000);
-            // console.log("new window " + ref_bubble.run_time + " - " + end_window_time)
         }
 
-        if (diff_days(ref_bubble.run_time, bubble.run_time) <= days && ref_bubble != bubble){
-            popped_bubbles.push(bubble)
+        if (diff_days(ref_bubble.run_time, bubble.run_time) <= days && ref_bubble != bubble){           
+
             if (popped_bubbles.indexOf(ref_bubble) <= 0){
+                console.log("ref")
+                console.log(ref_bubble)
                 popped_bubbles.push(ref_bubble)
+            }
+            if(popped_bubbles.indexOf(bubble)<=0){
+                console.log(bubble)
+                popped_bubbles.push(bubble)
             }
         }   
     });
+    // popped_bubbles.sort(compare)
+
+    console.log("@@@@")
+    console.log(popped_bubbles.length)
+    console.log("@@@@")
+
     popped_bubbles.forEach(function(bubble){
         fused_runs = fused_runs.concat(pop_bubble(bubble))
     })
 
+
     //XXX: Do we need to sort?
 
-    // fused_runs.forEach(function(run){
-    //     console.log(run.run_time)
-    // })
-    // console.log("@@@@")
     fused_runs.sort(compare)
 
     return fused_runs
@@ -140,9 +153,9 @@ function pop_bubble(bubbled_run){
         runs.push(run)
     }
     var index = bubble_data.indexOf(bubbled_run)
-    bubble_data.splice(index,1)
-    console.log("splicing")
-    d3.select("#runsG").selectAll("g").data(bubble_data).exit().remove()
+    if(index>=0)
+        bubble_data.splice(index,1)
+        d3.select("#runsG").selectAll("g").data(bubble_data).exit().remove()
 
     return runs
 }
@@ -187,8 +200,9 @@ d3.json("content.json",
         x_scale = d3.time.scale().domain(start_end).range([margin,w-margin]);
         y_scale = d3.scale.linear().domain([min_average_speed, max_average_speed]).range([500, 0])
 
-        all_runs = run_data
-        bubble_data = bubble(all_runs, .000000001)
+        all_runs = run_data.sort(compare)
+        bubble_data = bubble(all_runs, .00001)
+        bubble_data.sort(compare)
         data_viz(bubble_data)
         draw_bubbles(bubble_data)
         console.log("Starting runs: " + all_runs.length)
@@ -285,7 +299,7 @@ function data_viz(incoming_data) {
 
     var svg = d3.select("#vizcontainer")
         .append("svg")
-            .attr("width", w)
+            .attr("width", w+margin)
             .attr("height", h+margin)
             .call(zoom)
             .append("g")
@@ -336,23 +350,27 @@ function data_viz(incoming_data) {
 
     function refresh2(){
         if(zooming_in) {
-            var runs = pop_bubbles(bubble_data, .000001)
+            var runs = pop_bubbles(bubble_data, .00000001)
             if (runs.length) { 
                 console.log(runs)
-                var bubble_data2 = bubble(runs, .000001)
+                var bubble_data2 = bubble(runs, .00000001)
                 bubble_data = bubble_data.concat(bubble_data2)
                 bubble_data.sort(compare)
+                d3.select("#runsG").selectAll("g").data(bubble_data).exit().remove()
                 draw_bubbles(bubble_data)
             }  
         } else {            
             var runs2 = fuse_bubbles(bubble_data, bubble_bins)
-            if (runs2.length > 1){
+            if (runs2.length){
                 var bubble_data2 = bubble(runs2, bubble_bins)
                 bubble_data = bubble_data.concat(bubble_data2)
                 bubble_data.sort(compare)
+
+                d3.select("#runsG").selectAll("g").data(bubble_data).exit().remove()
                 draw_bubbles(bubble_data)
             }
         }
+        console.log(bubble_data)
         console.log("bubble length: " + bubble_data.length)
     }
 
