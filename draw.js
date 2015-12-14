@@ -7,6 +7,13 @@ var all_runs;
 saved_scale = 1
 bubble_bins = 4
 
+/*
+
+Store all runs, 
+then store a subset of the viewed runs for new scaled view
+
+
+*/
 function BubbledRuns() {
     this.average_min_per_mi = 0
     this.distance_miles = 0
@@ -159,7 +166,7 @@ var max_distance_miles
 var x_scale
 var y_scale
 
-d3.json("content.json", 
+d3.json("content3.json", 
     function(error, data) {
         // Get runs only
         var run_data = data.filter(function (data){
@@ -341,27 +348,28 @@ function data_viz(incoming_data) {
     }
 
     function refresh2(){
+        var threshold = calculate_bubble_thresh()
+        threshold = 5
+        console.log(threshold)
+        var runs 
         if(zooming_in) {
-            var runs = pop_bubbles(bubble_data, .00000001)
+            // It seems that popping all back to 1 makes merging back okay... don't set to threshold
+            runs = pop_bubbles(bubble_data, .00000001)
             if (runs.length) { 
-                console.log(runs)
-                var bubble_data2 = bubble(runs, 2)
-                bubble_data = bubble_data.concat(bubble_data2)
-                bubble_data.sort(compare)
-                d3.select("#runsG").selectAll("g").data(bubble_data).exit().remove()
-                draw_bubbles(bubble_data)
+                var bubble_data2 = bubble(runs, .00000001)
+
+              
             }  
         } else {            
-            var runs2 = fuse_bubbles(bubble_data, 5)
-            if (runs2.length){
-                var bubble_data2 = bubble(runs2, 5)
-                bubble_data = bubble_data.concat(bubble_data2)
-                bubble_data.sort(compare)
-
-                d3.select("#runsG").selectAll("g").data(bubble_data).exit().remove()
-                draw_bubbles(bubble_data)
+            runs = fuse_bubbles(bubble_data, threshold)
+            if (runs.length){
+                var bubble_data2 = bubble(runs, threshold)   
             }
         }
+        
+        bubble_data = bubble_data.concat(bubble_data2)
+        bubble_data.sort(compare)
+        draw_bubbles(bubble_data)
         console.log(bubble_data)
         console.log("bubble length: " + bubble_data.length)
     }
