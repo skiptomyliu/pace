@@ -220,12 +220,13 @@ function translate_runs(d,i){
 
 function draw_bubbles(bubbles){ 
     var svg = d3.select("#runsG")
-    var gcircles = svg.selectAll("g").data(bubbles)
+    var gcircles = svg.selectAll("g").data(bubbles);
+
     gcircles.enter()
-        .append("g")
-        .attr("class", "circleg")
-        .attr("id", function(d){return d.bubble_id})
-        .attr("transform", translate_runs)
+        // .append("g")
+        // .attr("class", "circleg")
+        // .attr("id", function(d){return d.bubble_id})
+        // .attr("transform", translate_runs)
         .append("circle")
         .attr("r", function(d) { return radius_scale(d.distance_miles)})
         .style("stroke", "black")
@@ -238,7 +239,9 @@ function draw_bubbles(bubbles){
             .style("fill", function(d){
                 return color_scale(d.distance_miles)
             })})
-    // gcircles.attr("transform", translate_runs)
+
+    gcircles.attr("transform", translate_runs)
+    
     gcircles.exit().remove();
     
 
@@ -351,27 +354,13 @@ function data_viz(incoming_data) {
         var threshold = calculate_bubble_thresh()
         threshold = 5
         console.log(threshold)
-        var runs 
-        if(zooming_in) {
-            // It seems that popping all back to 1 makes merging back okay... don't set to threshold
-            runs = pop_bubbles(bubble_data, .00000001)
-            if (runs.length) { 
-                var bubble_data2 = bubble(runs, .00000001)
 
-              
-            }  
-        } else {            
-            runs = fuse_bubbles(bubble_data, threshold)
-            if (runs.length){
-                var bubble_data2 = bubble(runs, threshold)   
-            }
-        }
-        
-        bubble_data = bubble_data.concat(bubble_data2)
+        console.log("Startings runs: " + all_runs.length)
+        bubble_data = bubble(all_runs, threshold)
         bubble_data.sort(compare)
         draw_bubbles(bubble_data)
         console.log(bubble_data)
-        console.log("bubble length: " + bubble_data.length)
+        console.log(bubble_data.length)
     }
 
 
