@@ -17,3 +17,41 @@ function avg_date(date1, date2){
 
 	return new Date(avgSeconds);
 }
+
+
+
+
+    // var points = 7
+    // var weighted_bin = []
+    // for(i=0; i<incoming_data.length; i+=points){
+    //     var bin_pace = 0
+    //     var bin_mileage = 0
+    //     for (j=0; j < points; j++){
+    //         if (i+j < incoming_data.length){
+    //             current_run = incoming_data[i+j]
+    //             bin_pace = avg_pace(bin_mileage, bin_pace, current_run.distance_miles, current_run.average_min_per_mi)
+    //             bin_mileage += current_run.distance_miles
+    //         }
+    //     }
+    //     weighted_bin.push(bin_pace)
+    // }
+
+    // var weighted_ramp = d3.scale.linear()
+    //     .domain([0, weighted_bin.length])
+    //     .range([margin,w-margin]);
+
+
+    // var weightedLine = d3.svg.line()
+    //     .x(function(d,i) {
+    //         return weighted_ramp(i)
+    //     })
+    //     .y(function(d){
+    //         return y_scale(d)
+    //     })
+    // d3.select("svg g")
+    //     .append("path")
+    //     .attr("id", "weightedLine")
+    //     .attr("d", weightedLine(weighted_bin))
+    //     .attr("fill", "none")
+    //     .attr("stroke", "blue")
+    //     .attr("stroke-width", 2);
