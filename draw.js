@@ -5,7 +5,7 @@ var margin = 40;
 var bubble_data;
 var all_runs;
 saved_scale = 1
-bubble_bins = 5
+bubble_bins = 7
 
 function BubbledRuns() {
     this.average_min_per_mi = 0
@@ -154,7 +154,7 @@ var max_distance_miles
 var x_scale
 var y_scale
 
-d3.json("content3.json", 
+d3.json("content.json", 
     function(error, data) {
         // Get runs only
         var run_data = data.filter(function (data){
@@ -206,7 +206,6 @@ function translate_runs(d,i){
 }
 
 function draw_bubbles(bubbles){ 
-    console.log(bubbles)
     var svg = d3.select("#runsG")
     var gcircles = svg.selectAll("g").data(bubbles)
     gcircles.enter()
@@ -219,12 +218,20 @@ function draw_bubbles(bubbles){
         .style("stroke", "black")
         .style("stroke-width", "1px")
         .style("fill", function(d) {return color_scale(d.distance_miles)})
-        .on("mouseover", highlightRegion);
+        .on("mouseover", highlightRegion)
+        .on("mouseout", function(){
+            d3.select(this).classed("inactive",true)
+            d3.select(d3.event.target).transition().duration(500)
+            .style("fill", function(d){
+                return color_scale(d.distance_miles)
+            })})
     // gcircles.attr("transform", translate_runs)
     gcircles.exit().remove();
     
 
-
+    function unhighlight(d){
+        d.classed("active", false)
+    }
     function highlightRegion(d) {
         d3.select(d3.event.target).classed("active",true)
             .style("fill", function(){return "red"})
@@ -278,7 +285,7 @@ function data_viz(incoming_data) {
 
     var svg = d3.select("#vizcontainer")
         .append("svg")
-            .attr("width", w+10)
+            .attr("width", w)
             .attr("height", h+margin)
             .call(zoom)
             .append("g")
@@ -305,6 +312,7 @@ function data_viz(incoming_data) {
         .attr("class", "x axis")
         .attr("transform","translate(0,"+(h)+")")
         .call(x_axis)
+
     /*
         Add run circle canvas
     */
@@ -339,7 +347,6 @@ function data_viz(incoming_data) {
         } else {            
             var runs2 = fuse_bubbles(bubble_data, bubble_bins)
             if (runs2.length > 1){
-                console.log(runs2)
                 var bubble_data2 = bubble(runs2, bubble_bins)
                 bubble_data = bubble_data.concat(bubble_data2)
                 bubble_data.sort(compare)
