@@ -93,8 +93,6 @@ d3.json("content.json",
 
 function get_runs_window(all_runs){
     var window_time = new Date(x_scale.domain()[1].getTime()+1*86400000);
-
-    console.log(window_time)
     sub_runs = all_runs.filter(function (all_runs){
         var start_time = new Date()
         return all_runs.run_time >= x_scale.domain()[0] && (all_runs.run_time) <= window_time
@@ -122,7 +120,6 @@ function translate_runs(d,i){
 function draw_bubbles(bubbles){ 
     var svg = d3.select("#runsG")
     var gcircles = svg.selectAll("circle").data(bubbles, function(d){return (d.run_time_end)});
-
 
     gcircles.enter()
         .append("circle")
@@ -196,6 +193,55 @@ function data_viz(incoming_data) {
     svg.append("g")
         .attr("id", "runsG")
 
+
+
+
+    function calculate_weight_bins(runs, bins){
+        var points = 3
+        var weighted_bin = []
+        for(i=0; i<incoming_data.length; i+=points){
+            var bin_pace = 0
+            var bin_mileage = 0
+            for (j=0; j < points; j++){
+                if (i+j < incoming_data.length){
+                    current_run = incoming_data[i+j]
+                    bin_pace = avg_pace(bin_mileage, bin_pace, current_run.distance_miles, current_run.average_min_per_mi)
+                    bin_mileage += current_run.distance_miles
+                }
+            }
+            weighted_bin.push(bin_pace)
+        }
+        return weighted_bin
+    }
+
+
+     var gpath = d3.select("svg g")
+            .append("path")
+            .attr("id", "weightedLine")
+            // .attr("d", weightedLine(weighted_bins))
+            .attr("fill", "none")
+            .attr("stroke", "blue")
+            .attr("stroke-width", 2);
+
+    function draw_weighted_avg(runs) {
+        var weighted_bins = calculate_weight_bins(runs, 7)
+        var weighted_ramp = d3.scale.linear()
+        .domain([0, weighted_bins.length])
+        .range([margin,w-margin]);
+        console.log(runs.length)
+        var weightedLine = d3.svg.line()
+            .x(function(d,i) {
+                console.log(d)
+                return weighted_ramp(i)
+            })
+            .y(function(d){
+                return y_scale(d)
+            })
+
+        d3.select("#weightedLine")
+            .attr("d", weightedLine(weighted_bins))
+    }
+
     function is_zooming_in(){
         zooming_in = (saved_scale < d3.event.scale)
         saved_scale = d3.event.scale
@@ -207,20 +253,30 @@ function data_viz(incoming_data) {
         calculate_ranges(sub_runs)
 
         svg.select("#xAxisG").call(x_axis);
-        svg.select("#yAxisG").call(y_axis);
+        // svg.select("#yAxisG").call(y_axis);
 
         // var bubble_data = bubble(sub_runs, threshold)
         // draw_bubbles(bubble_data)
         svg.selectAll("circle").attr("transform", translate_runs)
+        draw_weighted_avg(sub_runs)
+
     }
 
     function refresh_window(){
         var threshold = calculate_bubble_thresh()
         sub_runs = get_runs_window(all_runs)
         calculate_ranges(sub_runs)
+
+        // y_scale = d3.scale.linear().domain([min_average_speed, max_average_speed]).range([500, 0])
+        // var y_axis = d3.svg.axis().scale(y_scale).orient("left")
+        // svg.select("#yAxisG").call(y_axis);
+
         var bubble_data = bubble(sub_runs, threshold)
         draw_bubbles(bubble_data)
 
     }
+
+
+    
 }
 
