@@ -2,7 +2,6 @@
 var w = 1400;
 var h = 500;
 var margin = 40;
-var bubble_data;
 var all_runs;
 var sub_runs;
 
@@ -10,7 +9,6 @@ var sub_runs;
 
 Store all runs, 
 then store a subset of the viewed runs for new scaled view
-
 
 */
 function BubbledRuns() {
@@ -20,6 +18,9 @@ function BubbledRuns() {
     this.run_time_end
     this.runs = []
     this.bubble_id = "b"+Math.ceil(Math.random()*100000000)
+
+    // We loop through runs in a reverse chronological order
+    // run_time_end will usually be the first run
     this.addRun = function(run) {
         if (!(this.runs.length)){
             this.run_time = run.run_time
@@ -28,6 +29,7 @@ function BubbledRuns() {
         // else {
         //     this.run_time = avg_date(this.run_time, run.run_time)
         // }
+
 
         if (this.run_time >= run.run_time)
             this.run_time = run.run_time
@@ -114,12 +116,14 @@ d3.json("content.json",
         x_scale = d3.time.scale().domain(start_end).range([margin,w-margin]);
         y_scale = d3.scale.linear().domain([min_average_speed, max_average_speed]).range([500, 0])
 
-        all_runs = run_data.sort(compare)
+        all_runs = run_data
         sub_runs = all_runs
-        bubble_data = bubble(all_runs, .00001)
+
+        var bubble_data = bubble(all_runs, .00001)
         bubble_data.sort(compare)
         data_viz(bubble_data)
         draw_bubbles(bubble_data)
+
         console.log("Starting runs: " + all_runs.length)
         console.log("starting: " + bubble_data.length)
     }
@@ -136,11 +140,15 @@ function get_runs_window(all_runs){
     return sub_runs
 }
 
-//XXX:  todo, make this based on number of runs on screen
-function calculate_bubble_thresh(){
-    var days = diff_days(x_scale.domain()[0], x_scale.domain()[1])
 
-    return 7
+// Pop the bubbles after less than 500 
+function calculate_bubble_thresh(domain){
+    var diff = diff_days(x_scale.domain()[0], x_scale.domain()[1])
+    threshold = 2
+    if (diff < 456){
+        threshold = .0001
+    } 
+    return threshold
 }
 
 function translate_runs(d,i){
@@ -164,7 +172,6 @@ function draw_bubbles(bubbles){
                 return color_scale(d.distance_miles)
             })})
 
-
     gcircles
         .attr("transform", translate_runs)
 
@@ -175,50 +182,7 @@ function draw_bubbles(bubbles){
     gcircles.exit()
         .transition().duration(500)
         .attr('r', 0)
-        .remove();
-
-    function unhighlight(d){
-        // d.classed("active", false)
-    }
-    function highlightRegion(d) {
-        d3.select(d3.event.target).classed("active",true)
-            .style("fill", function(){return "red"})
-            this.parentElement.appendChild(this);
-
-        var coord = (d3.transform(d3.select(this).attr("transform"))).translate
-        var x = coord[0]
-        var y = coord[1]
-
-        // Pop out the tooltip
-        var tooltip = d3.select("#tooltip")
-
-        d3.select("#tooltip #run_title")
-            .text(d.name)
-
-        d3.select("#tooltip a")
-            .attr({"href": "https://strava.com/activities/"+d.id})
-            
-        var date_time = d.run_time;     //(d.run_time.getMonth()+1)+"/"+d.run_time.getDate() + "/" + d.run_time.getFullYear()
-        var date_time_end = d.run_time_end; //(d.run_time_end.getMonth()+1)+"/"+d.run_time_end.getDate() + "/" + d.run_time_end.getFullYear()
-
-        d3.select("#tooltip #run_date")
-           .text(date_time)
-        d3.select("#tooltip #run_date_end")
-           .text(date_time_end)
-           
-        d3.select("#tooltip #run_distance")
-           .text(parseFloat(d.distance_miles).toPrecision(4))
-        d3.select("#tooltip #run_pace")
-           .text(d.average_min_per_mi.toPrecision(4))
-        d3.select("#tooltip").classed("hidden", false);
-
-        var tooltipRect = tooltip.node().getBoundingClientRect()
-
-        d3.select("#tooltip")
-            .style("left", (x-tooltipRect.width/2.5) + "px")
-            .style("top", y-tooltipRect.height+ "px")
-    }
-
+        .remove(); 
 }
 
 // Layout axis and canvas
@@ -279,7 +243,7 @@ function data_viz(incoming_data) {
         svg.select("#xAxisG").call(x_axis);
         svg.select("#yAxisG").call(y_axis);
 
-        bubble_data = bubble(sub_runs, threshold)
+        var bubble_data = bubble(sub_runs, threshold)
         draw_bubbles(bubble_data)
     }
 
@@ -287,7 +251,7 @@ function data_viz(incoming_data) {
         var threshold = calculate_bubble_thresh()
         sub_runs = get_runs_window(all_runs)
         calculate_ranges(sub_runs)
-        bubble_data = bubble(sub_runs, threshold)
+        var bubble_data = bubble(sub_runs, threshold)
         draw_bubbles(bubble_data)
 
     }
