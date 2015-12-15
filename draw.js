@@ -11,45 +11,7 @@ Store all runs,
 then store a subset of the viewed runs for new scaled view
 
 */
-function BubbledRuns() {
-    this.average_min_per_mi = 0
-    this.distance_miles = 0
-    this.run_time
-    this.run_time_end
-    this.runs = []
-    this.bubble_id = "b"+Math.ceil(Math.random()*100000000)
 
-    // We loop through runs in a reverse chronological order
-    // run_time_end will usually be the first run
-    this.addRun = function(run) {
-        if (!(this.runs.length)){
-            this.run_time = run.run_time
-            this.run_time_end = run.run_time
-        } 
-        // else {
-        //     this.run_time = avg_date(this.run_time, run.run_time)
-        // }
-
-
-        if (this.run_time >= run.run_time)
-            this.run_time = run.run_time
-
-        // this.run_time_end = run.run_time
-
-        this.average_min_per_mi = avg_pace(this.distance_miles, this.average_min_per_mi, 
-            run.distance_miles, run.average_min_per_mi )
-        this.distance_miles += run.distance_miles
-        this.runs.push(run)
-    }
-}
-
-function compare(a,b) {
-  if (a.run_time < b.run_time)
-    return 1;
-  if (a.run_time > b.run_time)
-    return -1;
-  return 0;
-}
 
 function bubble(runs, days) {
     var bubbles = []
@@ -119,7 +81,7 @@ d3.json("content.json",
         all_runs = run_data
         sub_runs = all_runs
 
-        var bubble_data = bubble(all_runs, .00001)
+        var bubble_data = bubble(all_runs, calculate_bubble_thresh())
         bubble_data.sort(compare)
         data_viz(bubble_data)
         draw_bubbles(bubble_data)
@@ -144,7 +106,9 @@ function get_runs_window(all_runs){
 // Pop the bubbles after less than 500 
 function calculate_bubble_thresh(domain){
     var diff = diff_days(x_scale.domain()[0], x_scale.domain()[1])
-    threshold = 2
+    threshold = 3
+    if (diff < 730)
+        threshold = 2
     if (diff < 456){
         threshold = .0001
     } 
@@ -159,11 +123,13 @@ function draw_bubbles(bubbles){
     var svg = d3.select("#runsG")
     var gcircles = svg.selectAll("circle").data(bubbles, function(d){return (d.run_time_end)});
 
+
     gcircles.enter()
         .append("circle")
         .style("stroke", "black")
         .style("stroke-width", "1px")
         .attr("transform", translate_runs)
+        .attr('r',0)
         .on("mouseover", highlightRegion)
         .on("mouseout", function(){
             d3.select(this).classed("inactive",true)
@@ -181,7 +147,7 @@ function draw_bubbles(bubbles){
 
     gcircles.exit()
         .transition().duration(500)
-        .attr('r', 0)
+        .attr('r',0)
         .remove(); 
 }
 
@@ -243,8 +209,9 @@ function data_viz(incoming_data) {
         svg.select("#xAxisG").call(x_axis);
         svg.select("#yAxisG").call(y_axis);
 
-        var bubble_data = bubble(sub_runs, threshold)
-        draw_bubbles(bubble_data)
+        // var bubble_data = bubble(sub_runs, threshold)
+        // draw_bubbles(bubble_data)
+        svg.selectAll("circle").attr("transform", translate_runs)
     }
 
     function refresh_window(){
