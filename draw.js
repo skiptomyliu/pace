@@ -12,7 +12,6 @@ then store a subset of the viewed runs for new scaled view
 
 */
 
-
 function bubble(runs, days) {
     var bubbles = []
     var br = new BubbledRuns()
@@ -194,24 +193,23 @@ function data_viz(incoming_data) {
         .attr("id", "runsG")
 
 
-
-
     function calculate_weight_bins(runs, bins){
-        var points = 3
+        var points = bins
         var weighted_bin = []
-        for(i=0; i<incoming_data.length; i+=points){
+        for(i=0; i<runs.length; i+=points){
             var bin_pace = 0
             var bin_mileage = 0
             for (j=0; j < points; j++){
-                if (i+j < incoming_data.length){
-                    current_run = incoming_data[i+j]
+                if (i+j < runs.length){
+                    current_run = runs[i+j]
                     bin_pace = avg_pace(bin_mileage, bin_pace, current_run.distance_miles, current_run.average_min_per_mi)
                     bin_mileage += current_run.distance_miles
                 }
             }
             weighted_bin.push(bin_pace)
         }
-        return weighted_bin
+
+        return weighted_bin.reverse()
     }
 
 
@@ -226,19 +224,26 @@ function data_viz(incoming_data) {
     function draw_weighted_avg(runs) {
         var weighted_bins = calculate_weight_bins(runs, 7)
         var weighted_ramp = d3.scale.linear()
-        .domain([0, weighted_bins.length])
-        .range([margin,w-margin]);
-        console.log(runs.length)
+            .domain([0, weighted_bins.length])
+            .range([margin,w-margin]);
+
         var weightedLine = d3.svg.line()
             .x(function(d,i) {
-                console.log(d)
-                return weighted_ramp(i)
+                var percent = i/weighted_bins.length
+                //index_date = (end_date) - (percent)*(end_date-start_date)
+                var end_time = runs[runs.length-1].run_time.getTime()
+                var start_time = runs[0].run_time.getTime()
+                new_date = end_time - percent*(end_time-start_time)
+                weight_date = new Date(new_date)
+
+                return x_scale(weight_date) 
             })
             .y(function(d){
                 return y_scale(d)
             })
 
         d3.select("#weightedLine")
+            // .transition().duration(500)
             .attr("d", weightedLine(weighted_bins))
     }
 
@@ -250,15 +255,13 @@ function data_viz(incoming_data) {
 
     function refresh() {
         var threshold = calculate_bubble_thresh()
+        sub_runs = get_runs_window(all_runs)
         calculate_ranges(sub_runs)
-
+        // draw_weighted_avg(sub_runs)
         svg.select("#xAxisG").call(x_axis);
         // svg.select("#yAxisG").call(y_axis);
-
-        // var bubble_data = bubble(sub_runs, threshold)
-        // draw_bubbles(bubble_data)
-        svg.selectAll("circle").attr("transform", translate_runs)
-        draw_weighted_avg(sub_runs)
+        svg.selectAll("circle")
+            .attr("transform", translate_runs)
 
     }
 
@@ -266,17 +269,13 @@ function data_viz(incoming_data) {
         var threshold = calculate_bubble_thresh()
         sub_runs = get_runs_window(all_runs)
         calculate_ranges(sub_runs)
-
         // y_scale = d3.scale.linear().domain([min_average_speed, max_average_speed]).range([500, 0])
         // var y_axis = d3.svg.axis().scale(y_scale).orient("left")
         // svg.select("#yAxisG").call(y_axis);
-
+        draw_weighted_avg(sub_runs)
         var bubble_data = bubble(sub_runs, threshold)
         draw_bubbles(bubble_data)
-
     }
 
-
-    
 }
 
