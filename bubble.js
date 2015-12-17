@@ -1,6 +1,7 @@
 function BubbledRuns() {
     this.average_min_per_mi = 0
     this.distance_miles = 0
+    this.elevation = 0
     this.run_time
     this.run_time_end
     this.runs = []
@@ -20,8 +21,9 @@ function BubbledRuns() {
             this.run_time = run.run_time
 
         this.average_min_per_mi = avg_pace(this.distance_miles, this.average_min_per_mi, 
-            run.distance_miles, run.average_min_per_mi )
+            run.distance_miles, run.average_min_per_mi)
         this.distance_miles += run.distance_miles
+        this.elevation += run.total_elevation_gain
         this.runs.push(run)
     }
 }

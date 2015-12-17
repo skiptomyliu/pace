@@ -87,6 +87,7 @@ d3.json("content.json",
 
         console.log("Starting runs: " + all_runs.length)
         console.log("starting: " + bubble_data.length)
+        // console.log("elevation " + bubbledata.elevation)
     }
 );
 
@@ -221,6 +222,11 @@ function data_viz(incoming_data) {
             .attr("stroke", "blue")
             .attr("stroke-width", 2);
 
+    function draw_elevation_chart(runs){
+        svg.append("g")
+            .attr("id", "elevationG")
+    }
+
     function draw_weighted_avg(runs) {
         var weighted_bins = calculate_weight_bins(runs, 7)
         var weighted_ramp = d3.scale.linear()
@@ -262,7 +268,13 @@ function data_viz(incoming_data) {
         // svg.select("#yAxisG").call(y_axis);
         svg.selectAll("circle")
             .attr("transform", translate_runs)
+    }
 
+    function update_display_averages(){
+        d3.select("#pace_slowest").text(min_average_speed)
+        d3.select("#pace_fastest").text(max_average_speed)
+        // d3.select("#pace_slowest").text()
+        // d3.select("#pace_slowest")
     }
 
     function refresh_window(){
@@ -275,6 +287,8 @@ function data_viz(incoming_data) {
         draw_weighted_avg(sub_runs)
         var bubble_data = bubble(sub_runs, threshold)
         draw_bubbles(bubble_data)
+
+        update_display_averages()
     }
 
 }
