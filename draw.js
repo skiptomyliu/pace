@@ -5,6 +5,7 @@ var margin = 40;
 var all_runs;
 var sub_runs;
 
+var draw_avg = false
 /*  
 
 Store all runs, 
@@ -206,10 +207,10 @@ function data_viz(incoming_data) {
                     bin_mileage += current_run.distance_miles
                 }
             }
-            weighted_bin.push(bin_pace)
+            weighted_bin.unshift(bin_pace)
         }
 
-        return weighted_bin.reverse()
+        return weighted_bin
     }
 
 
@@ -272,7 +273,9 @@ function data_viz(incoming_data) {
         // y_scale = d3.scale.linear().domain([min_average_speed, max_average_speed]).range([500, 0])
         // var y_axis = d3.svg.axis().scale(y_scale).orient("left")
         // svg.select("#yAxisG").call(y_axis);
-        draw_weighted_avg(sub_runs)
+        if (draw_avg){
+            draw_weighted_avg(sub_runs)
+        }
         var bubble_data = bubble(sub_runs, threshold)
         draw_bubbles(bubble_data)
     }
