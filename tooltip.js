@@ -2,7 +2,7 @@
 
 
 function unhighlight(d){
-        // d.classed("active", false)
+        d.classed("active", false)
 }
 
 function highlightRegion(d) {
