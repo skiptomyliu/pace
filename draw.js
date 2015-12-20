@@ -15,10 +15,6 @@ then store a subset of the viewed runs for new scaled view
 */
 
 
-var savedTranslation = null;
-var savedScale = null;
-
-
 
 function bubble(runs, days) {
     var bubbles = []
@@ -131,7 +127,7 @@ function translate_runs(d,i){
 }
 
 function draw_bubbles(bubbles){ 
-    var svg = d3.select("#runsG")
+    var svg = d3.select("#runsG") // redo this variable
     var gcircles = svg.selectAll("circle").data(bubbles, function(d){return (d.run_time_end)});
 
     gcircles.enter()
@@ -194,27 +190,23 @@ function draw_elevation_chart(runs){
 
 }
 
-
-
 // Layout axis and canvas
 function data_viz(incoming_data) {
-    fake = d3.behavior.zoom()
     zoom = d3.behavior.zoom()
         .scaleExtent([1, Infinity])
         .x(x_scale)
-        .on("zoomstart", start_rect)
-        .on("zoom", refresh)
-        .on("zoomend", end_rect)
+        .on("zoomstart",    zoomstart)
+        .on("zoom",         zooming)
+        .on("zoomend",      zoomend)
 
-    var svg = d3.select("#vizcontainer")
+    var canvas = d3.select("#vizcontainer")
         .append("svg")
             .attr("width", w+margin)
             .attr("height", h+margin)
-            // .call(zoom)
+            .call(zoom)
             .append("g")
             .attr("id", "canvas")
 
-    d3.select("#vizcontainer svg").call(zoom)
     /*
 
     Draw axis
@@ -241,13 +233,23 @@ function data_viz(incoming_data) {
     /*
         Add run circle canvas
     */
-    svg.append("g")
+    canvas.append("g")
         .attr("id", "runsG")
 
-    svg.append("g")
+    canvas.append("g")
             .attr("id", "elevationG")
 
+    var gpath = d3.select("svg g")
+        .append("path")
+        .attr("id", "weightedLine")
+        // .attr("d", weightedLine(weighted_bins))
+        .attr("fill", "none")
+        .attr("stroke", "blue")
+        .attr("stroke-width", 2);
 
+
+
+    //XXX:  Todo:  move the weight bins into its own file
     function calculate_weight_bins(runs, bins){
         var points = bins
         var weighted_bin = []
@@ -266,17 +268,6 @@ function data_viz(incoming_data) {
 
         return weighted_bin
     }
-
-
-     var gpath = d3.select("svg g")
-            .append("path")
-            .attr("id", "weightedLine")
-            // .attr("d", weightedLine(weighted_bins))
-            .attr("fill", "none")
-            .attr("stroke", "blue")
-            .attr("stroke-width", 2);
-
-
 
     function draw_weighted_avg(runs) {
         var weighted_bins = calculate_weight_bins(runs, 7)
@@ -301,99 +292,6 @@ function data_viz(incoming_data) {
 
         d3.select("#weightedLine")
             .attr("d", weightedLine(weighted_bins))
-    }
-
-    function start_rect() {
-        if (d3.event.sourceEvent.shiftKey) {
-            var start_point = d3.mouse(this);
-            d3.event.sourceEvent.stopPropagation()
-            svg.append("rect")
-                .attr({
-                    rx      : 3,
-                    ry      : 3,
-                    class   : "selection",
-                    x       : start_point[0],
-                    y       : start_point[1],
-                    width   : 0,
-                    height  : 0
-                })
-
-
-             if (savedScale === null){
-                savedScale = zoom.scale();
-             }
-              if (savedTranslation === null){
-                 savedTranslation = zoom.translate();
-             }  
-
-             console.log(savedScale)
-             console.log(savedTranslation)
-        }
-    }
-    function refresh() {
-        if (d3.event.sourceEvent.shiftKey) {
-            // svg.call(fake)
-            d3.select("#vizcontainer svg").call(fake)
-            // d3.event.sourceEvent.stopPropagation()
-            console.log('dragging');
-            var s = container.select("rect.selection");
-
-            if(!s.empty()) {
-                var p = d3.mouse(this),
-                    d = {
-                        x       : parseInt(s.attr("x"), 10),
-                        y       : parseInt(s.attr("y"), 10),
-                        width   : parseInt(s.attr("width"), 10),
-                        height  : parseInt(s.attr("height"), 10)
-                    },
-                    move = {
-                        x : p[0] - d.x,
-                        y : p[1] - d.y
-                    }
-                ;
-
-                if(move.x < 1 || (move.x*2 < d.width)) {
-                    d.x = p[0];
-                    d.width -= move.x;
-                } else {
-                    d.width = move.x;       
-                }
-
-                if(move.y < 1 || (move.y*2 < d.height)) {
-                    d.y = p[1];
-                    d.height -= move.y;
-                } else {
-                    d.height = move.y;       
-                }
-                
-                s.attr(d);
-            }
-        } else {
-            console.log("WAT")
-            d3.select("#vizcontainer svg").call(zoom)
-            var threshold = calculate_bubble_thresh()
-            sub_runs = get_runs_window(all_runs)
-            calculate_ranges(sub_runs)
-            svg.select("#xAxisG")
-                .call(x_axis);
-            svg.selectAll("circle")
-                .attr("transform", translate_runs)
-
-            draw_elevation_chart(all_runs)
-        }   
-    }
-
-    function end_rect(){
-        d3.select("#vizcontainer svg").call(zoom)
-        console.log("SHIT")
-        if (savedScale !== null){
-             zoom.scale(savedScale);
-             savedScale = null;
-         }
-         if (savedTranslation !== null){
-             zoom.translate(savedTranslation);
-             savedTranslation = null;
-         }
     }
 
     function update_display_averages(){
