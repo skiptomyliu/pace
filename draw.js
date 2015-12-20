@@ -6,13 +6,19 @@ var all_runs;
 var sub_runs;
 
 var draw_avg = false
-var disable_zoom = false
+var dragging = false
 /*  
 
 Store all runs, 
 then store a subset of the viewed runs for new scaled view
 
 */
+
+
+var savedTranslation = null;
+var savedScale = null;
+
+
 
 function bubble(runs, days) {
     var bubbles = []
@@ -192,19 +198,23 @@ function draw_elevation_chart(runs){
 
 // Layout axis and canvas
 function data_viz(incoming_data) {
-    var zoom = d3.behavior.zoom()
+    fake = d3.behavior.zoom()
+    zoom = d3.behavior.zoom()
         .scaleExtent([1, Infinity])
         .x(x_scale)
+        .on("zoomstart", start_rect)
         .on("zoom", refresh)
-        .on("zoomend", refresh_window)
+        .on("zoomend", end_rect)
 
     var svg = d3.select("#vizcontainer")
         .append("svg")
             .attr("width", w+margin)
             .attr("height", h+margin)
-            .call(zoom)
+            // .call(zoom)
             .append("g")
             .attr("id", "canvas")
+
+    d3.select("#vizcontainer svg").call(zoom)
     /*
 
     Draw axis
@@ -221,7 +231,7 @@ function data_viz(incoming_data) {
         .attr("transform", "translate("+margin+",0)")
         .call(y_axis)
 
-    var x_axis = d3.svg.axis().scale(x_scale).orient("bottom").ticks(10).tickSize(20,0)
+    x_axis = d3.svg.axis().scale(x_scale).orient("bottom").ticks(10).tickSize(20,0)
     var xaxisg = d3.select("svg g").append("g")
         .attr("id", "xAxisG")
         .attr("class", "x axis")
@@ -290,14 +300,77 @@ function data_viz(incoming_data) {
             })
 
         d3.select("#weightedLine")
-            // .transition().duration(500)
             .attr("d", weightedLine(weighted_bins))
     }
 
+    function start_rect() {
+        if (d3.event.sourceEvent.shiftKey) {
+            var start_point = d3.mouse(this);
+            d3.event.sourceEvent.stopPropagation()
+            svg.append("rect")
+                .attr({
+                    rx      : 3,
+                    ry      : 3,
+                    class   : "selection",
+                    x       : start_point[0],
+                    y       : start_point[1],
+                    width   : 0,
+                    height  : 0
+                })
 
+
+             if (savedScale === null){
+                savedScale = zoom.scale();
+             }
+              if (savedTranslation === null){
+                 savedTranslation = zoom.translate();
+             }  
+
+             console.log(savedScale)
+             console.log(savedTranslation)
+        }
+    }
     function refresh() {
-        if (!disable_zoom){
+        if (d3.event.sourceEvent.shiftKey) {
+            // svg.call(fake)
+            d3.select("#vizcontainer svg").call(fake)
+            // d3.event.sourceEvent.stopPropagation()
+            console.log('dragging');
+            var s = container.select("rect.selection");
 
+            if(!s.empty()) {
+                var p = d3.mouse(this),
+                    d = {
+                        x       : parseInt(s.attr("x"), 10),
+                        y       : parseInt(s.attr("y"), 10),
+                        width   : parseInt(s.attr("width"), 10),
+                        height  : parseInt(s.attr("height"), 10)
+                    },
+                    move = {
+                        x : p[0] - d.x,
+                        y : p[1] - d.y
+                    }
+                ;
+
+                if(move.x < 1 || (move.x*2 < d.width)) {
+                    d.x = p[0];
+                    d.width -= move.x;
+                } else {
+                    d.width = move.x;       
+                }
+
+                if(move.y < 1 || (move.y*2 < d.height)) {
+                    d.y = p[1];
+                    d.height -= move.y;
+                } else {
+                    d.height = move.y;       
+                }
+                
+                s.attr(d);
+            }
+        } else {
+            console.log("WAT")
+            d3.select("#vizcontainer svg").call(zoom)
             var threshold = calculate_bubble_thresh()
             sub_runs = get_runs_window(all_runs)
             calculate_ranges(sub_runs)
@@ -307,8 +380,20 @@ function data_viz(incoming_data) {
                 .attr("transform", translate_runs)
 
             draw_elevation_chart(all_runs)
-        }
-        
+        }   
+    }
+
+    function end_rect(){
+        d3.select("#vizcontainer svg").call(zoom)
+        console.log("SHIT")
+        if (savedScale !== null){
+             zoom.scale(savedScale);
+             savedScale = null;
+         }
+         if (savedTranslation !== null){
+             zoom.translate(savedTranslation);
+             savedTranslation = null;
+         }
     }
 
     function update_display_averages(){
@@ -336,82 +421,5 @@ function data_viz(incoming_data) {
 
         update_display_averages()
     }
-
-
-    var container = d3.select("#vizcontainer")
-    var canvas = d3.select("#canvas")
-
-    container
-        .on( "mousedown", function() {
-            if (d3.event.shiftKey) {
-                disable_zoom = true
-                var start_point = d3.mouse(this);
-                canvas.append( "rect")
-                    .attr({
-                        rx      : 3,
-                        ry      : 3,
-                        class   : "selection",
-                        x       : start_point[0],
-                        y       : start_point[1],
-                        width   : 0,
-                        height  : 0
-                    })
-            } else{
-                disable_zoom = false
-            }
-    })
-    .on( "mousemove", function() {
-        var s = container.select( "rect.selection");
-
-        if(!s.empty()) {
-            var p = d3.mouse(this),
-                d = {
-                    x       : parseInt(s.attr("x"), 10),
-                    y       : parseInt(s.attr("y"), 10),
-                    width   : parseInt(s.attr("width"), 10),
-                    height  : parseInt(s.attr("height"), 10)
-                },
-                move = {
-                    x : p[0] - d.x,
-                    y : p[1] - d.y
-                }
-            ;
-
-            if(move.x < 1 || (move.x*2 < d.width)) {
-                d.x = p[0];
-                d.width -= move.x;
-            } else {
-                d.width = move.x;       
-            }
-
-            if(move.y < 1 || (move.y*2 < d.height)) {
-                d.y = p[1];
-                d.height -= move.y;
-            } else {
-                d.height = move.y;       
-            }
-            
-            s.attr(d);
-
-            d3.selectAll('circle').each( function(run_data, i) {
-                // Determine if rect encapsulates any circles
-                radius = parseFloat(this.getAttribute("r"))
-                var cpos = d3.transform(this.getAttribute("transform")).translate
-                if( d.x+d.width >= (cpos[0]+radius) && d.x <= (cpos[0]-radius) &&
-                    d.y+d.height >= (cpos[1]+radius) && d.y <= (cpos[1]-radius) ){  
-                    console.log("HIT DAT"); 
-
-                }
-            
-            });
-        }
-    })
-    .on( "mouseup", function() {
-        container.selectAll("rect.selection").remove(); // remove selection frame
-        d3.selectAll( 'g.state.selection').classed( "selection", false); // remove temporary selection marker class
-        disable_zoom = false
-    })
-
-
 }
 
