@@ -23,7 +23,7 @@ function highlightRegion(d) {
     d3.select("#tooltip a")
         .attr({"href": "https://strava.com/activities/"+d.id})
         
-    var date_time = d.run_time;     //(d.run_time.getMonth()+1)+"/"+d.run_time.getDate() + "/" + d.run_time.getFullYear()
+    var date_time = d.run_time;         //(d.run_time.getMonth()+1)+"/"+d.run_time.getDate() + "/" + d.run_time.getFullYear()
     var date_time_end = d.run_time_end; //(d.run_time_end.getMonth()+1)+"/"+d.run_time_end.getDate() + "/" + d.run_time_end.getFullYear()
 
     d3.select("#tooltip #run_date")

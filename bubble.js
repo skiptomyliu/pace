@@ -28,6 +28,7 @@ function BubbledRuns() {
     }
 }
 
+// Used for sorting BubbleRuns
 function compare(a,b) {
   if (a.run_time < b.run_time)
     return 1;

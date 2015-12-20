@@ -2,11 +2,15 @@
 var w = 1400;
 var h = 500;
 var margin = 40;
-var all_runs;
-var sub_runs;
+
+// 4 buckets
+var all_runs;       // all runs, this will never change
+var focused_runs;   // saved bucket of runs that the user has selected, becomes all_runs
+var sub_runs;       // used for calculations based on focused_runs
+var selected_runs;  // runs selected by user, short lived on each shift+click
 
 var draw_avg = false
-var dragging = false
+
 /*  
 
 Store all runs, 
@@ -15,7 +19,9 @@ then store a subset of the viewed runs for new scaled view
 */
 
 
-
+// Core function that clusters runs into a bubble.  Days is the threshold for bubbling runs
+// For example, if days = 2, any runs that fall within two days  
+// of each other will be bubbled together
 function bubble(runs, days) {
     var bubbles = []
     var br = new BubbledRuns()
@@ -46,28 +52,28 @@ var y_scale
 var total_elevation_gain
 
 function calculate_ranges(run_data){
-        max_average_speed = d3.max(run_data, function(el){
-            return el.average_min_per_mi
-        });
+    max_average_speed = d3.max(run_data, function(el){
+        return el.average_min_per_mi
+    });
 
-        min_average_speed = d3.min(run_data, function(el){
-            return el.average_min_per_mi
-        })
+    min_average_speed = d3.min(run_data, function(el){
+        return el.average_min_per_mi
+    })
 
-        start_end = d3.extent(run_data, function(el){ // get min and max start time
-            return el.run_time
-        });
+    start_end = d3.extent(run_data, function(el){ // get min and max start time
+        return el.run_time
+    });
 
-        max_distance_miles = d3.max(run_data, function(el){
-            return el.distance_miles
-        })   
+    max_distance_miles = d3.max(run_data, function(el){
+        return el.distance_miles
+    })   
 
-        total_elevation_gain = d3.sum(run_data, function(el){
-            return el.total_elevation_gain
-        })
+    total_elevation_gain = d3.sum(run_data, function(el){
+        return el.total_elevation_gain
+    })
 }
 
-d3.json("content3.json", 
+d3.json("content.json", 
     function(error, data) {
         // Get runs only
         var run_data = data.filter(function (data){
@@ -86,7 +92,10 @@ d3.json("content3.json",
         x_scale = d3.time.scale().domain(start_end).range([margin,w-margin]);
         y_scale = d3.scale.linear().domain([min_average_speed, max_average_speed]).range([500, 0])
 
+        update_axis()
+
         all_runs = run_data
+        focused_runs = all_runs
         sub_runs = all_runs
 
         var bubble_data = bubble(all_runs, calculate_bubble_thresh())
@@ -108,7 +117,6 @@ function get_runs_window(all_runs){
     });
     return sub_runs
 }
-
 
 // Pop the bubbles after less than 500 
 function calculate_bubble_thresh(domain){
@@ -136,7 +144,7 @@ function draw_bubbles(bubbles){
         .style("stroke-width", "1px")
         .style("opacity", .75)
         .attr("transform", translate_runs)
-        .attr('r',0)
+        .attr('r', 0)
         .on("mouseover", highlightRegion)
         .on("mouseout", function(){
             d3.select(this).classed("inactive",true)
@@ -246,78 +254,31 @@ function data_viz(incoming_data) {
         .attr("fill", "none")
         .attr("stroke", "blue")
         .attr("stroke-width", 2);
+}
 
+function update_axis(){
+    // y_scale = d3.scale.linear().domain([min_average_speed, max_average_speed]).range([500, 0])
+    // var y_axis = d3.svg.axis().scale(y_scale).orient("left")
+    // d3.select("#yAxisG").call(y_axis);
+    // x_scale = d3.time.scale().domain(start_end).range([margin,w-margin]);        
+    // var x_axis = d3.svg.axis().scale(x_scale).orient("bottom").ticks(10).tickSize(20,0)
+    // d3.select("#xAxisG").call(x_axis);
 
+    // zoom = d3.behavior.zoom()
+    //     .scaleExtent([1, Infinity])
+    //     .x(x_scale)
+    //     .on("zoomstart",    zoomstart)
+    //     .on("zoom",         zooming)
+    //     .on("zoomend",      zoomend)
 
-    //XXX:  Todo:  move the weight bins into its own file
-    function calculate_weight_bins(runs, bins){
-        var points = bins
-        var weighted_bin = []
-        for(i=0; i<runs.length; i+=points){
-            var bin_pace = 0
-            var bin_mileage = 0
-            for (j=0; j < points; j++){
-                if (i+j < runs.length){
-                    current_run = runs[i+j]
-                    bin_pace = avg_pace(bin_mileage, bin_pace, current_run.distance_miles, current_run.average_min_per_mi)
-                    bin_mileage += current_run.distance_miles
-                }
-            }
-            weighted_bin.unshift(bin_pace)
-        }
+    // d3.select("#vizcontainer svg").call(zoom)
+}
 
-        return weighted_bin
-    }
-
-    function draw_weighted_avg(runs) {
-        var weighted_bins = calculate_weight_bins(runs, 7)
-        var weighted_ramp = d3.scale.linear()
-            .domain([0, weighted_bins.length])
-            .range([margin,w-margin]);
-
-        var weightedLine = d3.svg.line()
-            .x(function(d,i) {
-                var percent = i/weighted_bins.length
-                //index_date = (end_date) - (percent)*(end_date-start_date)
-                var end_time = runs[runs.length-1].run_time.getTime()
-                var start_time = runs[0].run_time.getTime()
-                new_date = end_time - percent*(end_time-start_time)
-                weight_date = new Date(new_date)
-
-                return x_scale(weight_date) 
-            })
-            .y(function(d){
-                return y_scale(d)
-            })
-
-        d3.select("#weightedLine")
-            .attr("d", weightedLine(weighted_bins))
-    }
-
-    function update_display_averages(){
-        d3.select("#pace_slowest").text(min_average_speed)
-        d3.select("#pace_fastest").text(max_average_speed)
-        d3.select("#pace_elevation").text(total_elevation_gain)
-        // d3.select("#pace_slowest").text()
-        // d3.select("#pace_slowest")
-    }
-
-    function refresh_window(){
-        var threshold = calculate_bubble_thresh()
-        sub_runs = get_runs_window(all_runs)
-        calculate_ranges(sub_runs)
-        /* This code resets the yaxis
-         y_scale = d3.scale.linear().domain([min_average_speed, max_average_speed]).range([500, 0])
-         var y_axis = d3.svg.axis().scale(y_scale).orient("left")
-         svg.select("#yAxisG").call(y_axis);
-        */
-        if (draw_avg){
-            draw_weighted_avg(sub_runs)
-        }
-        var bubble_data = bubble(sub_runs, threshold)
-        draw_bubbles(bubble_data)
-
-        update_display_averages()
-    }
+function update_display_averages(){
+    d3.select("#pace_slowest").text(min_average_speed)
+    d3.select("#pace_fastest").text(max_average_speed)
+    d3.select("#pace_elevation").text(total_elevation_gain)
+    // d3.select("#pace_slowest").text()
+    // d3.select("#pace_slowest")
 }
 
