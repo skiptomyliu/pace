@@ -117,6 +117,8 @@ function zoomend(){
         selectedRuns.add(run_data)
     });
 
+    d3.selectAll('.selected').classed("selected", false);
+
     // Resume zoom/pan from saved state to prevent jumpiness
     if (savedScale !== null){
         zoom.scale(savedScale);
@@ -130,16 +132,17 @@ function zoomend(){
     var threshold = calculate_bubble_thresh()
 
     // If we have selected runs, we set the new focus of runs
-    if (selectedRuns.size){
+    if (selectedRuns.size) {
+        console.log(selectedRuns.size) 
         sub_runs = Array.from(selectedRuns)
         focused_runs = sub_runs;
     } 
     // Remove runs that fall outside our view
     sub_runs = get_runs_window(focused_runs)
 
-    if (selectedRuns.size){
-        update_axis()
-    }
+    // if (selectedRuns.size){
+        // update_axis()
+    // }
 
     calculate_ranges(sub_runs)
 
