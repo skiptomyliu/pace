@@ -49,7 +49,7 @@ var start_end
 var max_distance_miles
 var x_scale
 var y_scale
-var total_elevation_gain
+// var total_elevation_gain
 
 function calculate_ranges(run_data){
     max_average_speed = d3.max(run_data, function(el){
@@ -69,7 +69,7 @@ function calculate_ranges(run_data){
     })   
 
     total_elevation_gain = d3.sum(run_data, function(el){
-        return el.total_elevation_gain
+        return parseFloat(el.total_elevation_gain)
     })
 }
 
@@ -102,7 +102,7 @@ d3.json("content.json",
         bubble_data.sort(compare)
         data_viz(bubble_data)
         draw_bubbles(bubble_data)
-        draw_elevation_chart(sub_runs)
+        draw_elevation_chart(focused_runs)
 
         console.log("Starting runs: " + all_runs.length)
         console.log("starting: " + bubble_data.length)
@@ -169,11 +169,11 @@ function draw_bubbles(bubbles){
 var y_scale2 = d3.scale.linear().domain([0, 2500]).range([0, 200])
 
 function translate_elevations(d,i){
+    console.log(d.total_elevation_gain)
     return "translate("+x_scale(d.run_time)+","+(h-y_scale2(d.total_elevation_gain))+")"
 }
 
 function draw_elevation_chart(runs){
-    
     var svg = d3.select("#elevationG")
     var grects = svg.selectAll("rect").data(runs)//, function(d){return (d.run_time_end)});
     
@@ -184,10 +184,9 @@ function draw_elevation_chart(runs){
         .style("fill", "blue")
         .style("opacity", .25)
         // .style("stroke", "red")
-        .attr("transform", translate_elevations)
+        // .attr("transform", translate_elevations)
         .attr('width',10)
         .attr('height', function(d){return y_scale2(d.total_elevation_gain)})
-
 
     grects.attr("transform", translate_elevations)
 

@@ -101,7 +101,7 @@ function zooming() {
         d3.selectAll("circle")
             .attr("transform", translate_runs)
 
-        draw_elevation_chart(all_runs)
+        draw_elevation_chart(focused_runs)
     }   
 }
 
@@ -153,6 +153,6 @@ function zoomend(){
     draw_bubbles(bubble_data)
 
     update_display_averages()
-    
+    draw_elevation_chart(focused_runs)
 }
 
