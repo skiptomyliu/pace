@@ -1,5 +1,4 @@
 
-
 /*
 
 Handle user interaction: zooming and selection
@@ -71,8 +70,10 @@ function zooming() {
             
             s.attr(d);
 
-            d3.selectAll('circle').each( function(run_data, i) {
+            d3.selectAll('circle').each(function(run_data, i) {
                 // Determine if rect encapsulates any circles
+                d3.select(this)
+                    .classed("selected", false)
                 radius = parseFloat(this.getAttribute("r"))
                 var cpos = d3.transform(this.getAttribute("transform")).translate
                 if( d.x + d.width  >= (cpos[0] + radius) && d.x <= (cpos[0] - radius) &&
@@ -82,11 +83,8 @@ function zooming() {
                         .style("fill", function(){ return "purple" })
                         .classed("selected", true);
 
-                    selectedRuns.add(run_data)
+                    // selectedRuns.add(run_data)
 
-                    // d3.select(this.parentNode)
-                    //     .classed("selection", true)
-                    //     .classed("selected", true);
                 } else {
                     d3.select(this)
                         .style("fill", function(){return "red"})
@@ -112,6 +110,13 @@ function zoomend(){
     container.selectAll("rect.selection").remove(); // remove selection rectangle
     // d3.selectAll('g.state.selection').classed("selection", false); // remove temporary selection marker class
 
+    console.log("displaying run data")
+    // d3.selectAll('circle').selectAll('.selected').each(function(run_data,i){
+
+    d3.selectAll('.selected').each(function(run_data,i){
+        selectedRuns.add(run_data)
+    });
+
     // Resume zoom/pan from saved state to prevent jumpiness
     if (savedScale !== null){
         zoom.scale(savedScale);
@@ -123,7 +128,7 @@ function zoomend(){
     }
 
     var threshold = calculate_bubble_thresh()
-    
+
     // If we have selected runs, we set the new focus of runs
     if (selectedRuns.size){
         sub_runs = Array.from(selectedRuns)
@@ -133,7 +138,6 @@ function zoomend(){
     sub_runs = get_runs_window(focused_runs)
 
     if (selectedRuns.size){
-        console.log("UPDATE")
         update_axis()
     }
 
