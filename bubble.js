@@ -6,12 +6,14 @@ function BubbledRuns() {
     this.run_time
     this.run_time_end
     this.runs = []
+    this.name = "hi"
     this.bubble_id = "b"+Math.ceil(Math.random()*100000000)
 
     // We loop through runs in a reverse chronological order
     // run_time_end will usually be the first run
     this.addRun = function(run) {
         if (!(this.runs.length)){
+            this.name = run.name
             this.run_time = run.run_time
             this.run_time_end = run.run_time
         } 

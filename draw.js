@@ -220,6 +220,7 @@ function data_viz(incoming_data) {
     radius_scale = d3.scale.linear().domain([0, max_distance_miles]).range([1,20])
 
     y_axis = d3.svg.axis().scale(y_scale).orient("left")
+        .tickFormat(function(d){return parseInt(d).toString()+":"+( (d%1*60).toFixed(0))+"/mi" })
     var yaxisg = d3.select("svg g").append("g")
         .attr("id", "yAxisG")
         .attr("class", "y axis")
