@@ -18,8 +18,19 @@ function avg_date(date1, date2){
 	return new Date(avgSeconds);
 }
 
+function m_to_ft(m){
+    return m*3.28084
+}
 
+function pad(num, size){ 
+    return ('000000' + num).substr(-size); 
+}
 
+function min_per_mi_str(decimal) {
+    seconds = pad(((decimal%1) * 60).toFixed(0),2).toString()
+    min = parseInt(decimal).toString()
+    return min+":"+seconds+"/mi"
+}
 
     // var points = 7
     // var weighted_bin = []

@@ -41,7 +41,7 @@ function highlight(d) {
        .text(parseFloat(d.distance_miles).toPrecision(4))
 
     d3.select("#tooltip #run_pace")
-       .text(d.average_min_per_mi.toPrecision(4))
+       .text(min_per_mi_str(d.average_min_per_mi))
 
     d3.select("#tooltip").classed("hidden", false);
 

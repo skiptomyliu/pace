@@ -126,21 +126,5 @@ function zoomend(){
         sub_runs = Array.from(selectedRuns)
         focused_runs = sub_runs;
     } 
-    refresh_data_window(focused_runs)
+    data_viz(focused_runs)
 }
-
-function refresh_data_window(focused_runs) {
-    // Remove runs that fall outside our view
-    sub_runs = get_runs_window(focused_runs)
-    update_ranges(sub_runs)
-    // draw_weighted_avg(sub_runs)
-    if (selectedRuns.size){
-        update_axis()
-    }
-    bubble_data = bubble(sub_runs, calculate_bubble_thresh())
-    draw_bubbles(bubble_data)
-
-    update_display_averages()
-    draw_elevation_chart(bubble_data)
-}
-

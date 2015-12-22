@@ -1,7 +1,8 @@
 
 var w = 1400;
 var h = 500;
-var margin = 40;
+var margin = 50;
+var pace_margin = .10; //+-6 seconds on chart
 
 // 4 buckets
 var all_runs;       // all runs, this will never change
@@ -20,7 +21,6 @@ Store all runs,
 then store a subset of the viewed runs for new scaled view
 
 */
-
 
 // Core function that clusters runs into a bubble.  Days is the threshold for bubbling runs
 // For example, if days = 2, any runs that fall within two days  
@@ -50,10 +50,11 @@ var max_average_speed
 var min_average_speed
 var start_end 
 var max_distance_miles
+var total_elevation_gain
+var max_elevation_gain
 var x_scale
 var y_scale
 // var total_elevation_gain
-
 function update_ranges(run_data){
     max_average_speed = d3.max(run_data, function(el){
         return el.average_min_per_mi
@@ -74,6 +75,10 @@ function update_ranges(run_data){
     total_elevation_gain = d3.sum(run_data, function(el){
         return parseFloat(el.total_elevation_gain)
     })
+
+    max_elevation_gain = d3.max(run_data, function(el){
+        return el.total_elevation_gain
+    })
 }
 
 d3.json("content.json", 
@@ -91,7 +96,6 @@ d3.json("content.json",
         });
 
         update_ranges(run_data)
-
         x_scale = d3.time.scale().domain(start_end).range([margin,w-margin]);
         y_scale = d3.scale.linear().domain([min_average_speed, max_average_speed]).range([500, 0])
 
@@ -99,16 +103,26 @@ d3.json("content.json",
         focused_runs = all_runs
         sub_runs = all_runs
 
-        var bubble_data = bubble(all_runs, calculate_bubble_thresh())
-        bubble_data.sort(compare)
-        data_viz(bubble_data)
-        draw_bubbles(bubble_data)
-        draw_elevation_chart(bubble_data)
-
-        console.log("Starting runs: " + all_runs.length)
-        console.log("starting: " + bubble_data.length)
+        canvas_viz()
+        data_viz(all_runs)
     }
 );
+
+function data_viz(focused_runs) {
+    // Remove runs that fall outside our view
+    sub_runs = get_runs_window(focused_runs)
+    update_ranges(sub_runs)
+    // draw_weighted_avg(sub_runs)
+    if (selectedRuns.size){
+        update_axis()
+    }
+    bubble_data = bubble(sub_runs, calculate_bubble_thresh())
+    draw_bubbles(bubble_data)
+
+    update_display_averages()
+    draw_elevation_chart(bubble_data)
+}
+
 
 function get_runs_window(all_runs){
     var window_time = new Date(x_scale.domain()[1].getTime()+1*86400000);
@@ -153,8 +167,8 @@ function draw_bubbles(bubbles){
         .attr("transform", translate_runs)
 
     gcircles.transition().duration(500)
-        .attr("r", function(d) {return radius_scale(d.distance_miles) })
-        .style("fill", function(d) {return color_scale(d.distance_miles)})
+        .attr("r", function(d) { return radius_scale(d.distance_miles) })
+        .style("fill", function(d) { return color_scale(d.distance_miles) })
 
     gcircles.exit()
         .transition().duration(500)
@@ -192,7 +206,7 @@ function draw_elevation_chart(bubbles){
 }
 
 // Layout axis and canvas
-function data_viz(incoming_data) {
+function canvas_viz() {
     zoom = d3.behavior.zoom()
         .scaleExtent([1, Infinity])
         .x(x_scale)
@@ -213,14 +227,11 @@ function data_viz(incoming_data) {
     Draw axis
 
     */
-
-    
-    // color_scale  = d3.scale.linear().domain([0, max_distance_miles]).range(["white", "#990000"])
     color_scale  = d3.scale.linear().domain([0, max_distance_miles]).range(["white",d3.rgb(90, 155, 212)])
     radius_scale = d3.scale.linear().domain([0, max_distance_miles]).range([1,20])
 
     y_axis = d3.svg.axis().scale(y_scale).orient("left")
-        .tickFormat(function(d){return parseInt(d).toString()+":"+( (d%1*60).toFixed(0))+"/mi" })
+        .tickFormat(function(d){return min_per_mi_str(d)})
     var yaxisg = d3.select("svg g").append("g")
         .attr("id", "yAxisG")
         .attr("class", "y axis")
@@ -233,6 +244,7 @@ function data_viz(incoming_data) {
         .attr("class", "x axis")
         .attr("transform","translate(0,"+(h)+")")
         .call(x_axis)
+    update_axis()
 
     /*
         Add run circle canvas
@@ -254,7 +266,7 @@ function data_viz(incoming_data) {
 
 function update_axis(){
     console.log("updating the axis");
-    y_scale = d3.scale.linear().domain([min_average_speed, max_average_speed]).range([500, 0])
+    y_scale = d3.scale.linear().domain([min_average_speed-pace_margin, max_average_speed+pace_margin]).range([500, 0])
     y_axis.scale(y_scale)
     d3.select("#yAxisG").call(y_axis)
 
@@ -265,9 +277,11 @@ function update_axis(){
 }
 
 function update_display_averages(){
-    d3.select("#pace_slowest").text(min_average_speed)
-    d3.select("#pace_fastest").text(max_average_speed)
-    d3.select("#pace_elevation").text(total_elevation_gain)
+    d3.select("#pace_fastest").text(min_per_mi_str(min_average_speed))
+    d3.select("#pace_slowest").text(min_per_mi_str(max_average_speed))
+    d3.select("#pace_longest").text(max_distance_miles.toFixed(2))
+    d3.select("#pace_total_elevation").text(m_to_ft(total_elevation_gain).toFixed(0)+" ft")
+    d3.select("#pace_max_elevation").text(m_to_ft(max_elevation_gain).toFixed(0)+" ft")
     // d3.select("#pace_slowest").text()
     // d3.select("#pace_slowest")
 }
