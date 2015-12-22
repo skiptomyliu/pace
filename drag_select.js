@@ -7,7 +7,6 @@ Handle user interaction: zooming and selection
 var container = d3.select("#vizcontainer")
 var savedTranslation = null;
 var savedScale = null;
-
 var selectedRuns = new Set();
 
 function zoomstart() {
@@ -83,8 +82,6 @@ function zooming() {
                         .style("fill", function(){ return "purple" })
                         .classed("selected", true);
 
-                    // selectedRuns.add(run_data)
-
                 } else {
                     d3.select(this)
                         .style("fill", function(){return "red"})
@@ -92,13 +89,12 @@ function zooming() {
             });
         }
     } else {
-        d3.select("#vizcontainer svg").call(zoom)
         var threshold = calculate_bubble_thresh()
         sub_runs = get_runs_window(focused_runs)
         update_ranges(sub_runs)
         d3.select("#xAxisG")
             .call(x_axis);
-            
+        
         d3.selectAll("circle")
             .attr("transform", translate_runs)
 
@@ -127,10 +123,8 @@ function zoomend(){
 
     // If we have selected runs, we set the new focus of runs
     if (selectedRuns.size) {
-        console.log(selectedRuns.size) 
         sub_runs = Array.from(selectedRuns)
         focused_runs = sub_runs;
-        //update_axis
     } 
     refresh_data_window(focused_runs)
 }
@@ -140,7 +134,9 @@ function refresh_data_window(focused_runs) {
     sub_runs = get_runs_window(focused_runs)
     update_ranges(sub_runs)
     // draw_weighted_avg(sub_runs)
-    update_axis()
+    if (selectedRuns.size){
+        update_axis()
+    }
     bubble_data = bubble(sub_runs, calculate_bubble_thresh())
     draw_bubbles(bubble_data)
 

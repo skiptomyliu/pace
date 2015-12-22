@@ -95,8 +95,6 @@ d3.json("content.json",
         x_scale = d3.time.scale().domain(start_end).range([margin,w-margin]);
         y_scale = d3.scale.linear().domain([min_average_speed, max_average_speed]).range([500, 0])
 
-        // update_axis()
-
         all_runs = run_data
         focused_runs = all_runs
         sub_runs = all_runs
@@ -177,8 +175,8 @@ function draw_elevation_chart(bubbles){
     grects.enter()
         .append("rect")
         .style("stroke-width", "1px")
-        .style("fill", "blue")
-        .style("opacity", .25)
+        .style("fill", d3.rgb(122, 195,106))
+        .style("opacity", .50)
         // .style("stroke", "black")
         // .style("stroke", "red")
         .attr('width',10)
@@ -216,7 +214,9 @@ function data_viz(incoming_data) {
 
     */
 
-    color_scale  = d3.scale.linear().domain([0, max_distance_miles]).range(["white", "#990000"])
+    
+    // color_scale  = d3.scale.linear().domain([0, max_distance_miles]).range(["white", "#990000"])
+    color_scale  = d3.scale.linear().domain([0, max_distance_miles]).range(["white",d3.rgb(90, 155, 212)])
     radius_scale = d3.scale.linear().domain([0, max_distance_miles]).range([1,20])
 
     y_axis = d3.svg.axis().scale(y_scale).orient("left")
@@ -252,24 +252,15 @@ function data_viz(incoming_data) {
 }
 
 function update_axis(){
-    // y_scale = d3.scale.linear().domain([min_average_speed, max_average_speed]).range([500, 0])
-    // var y_axis = d3.svg.axis().scale(y_scale).orient("left")
-    // d3.select("#yAxisG").call(y_axis);
-    // x_scale = d3.time.scale().domain(start_end).range([margin,w-margin]);        
-    // var x_axis = d3.svg.axis().scale(x_scale).orient("bottom").ticks(10).tickSize(20,0)
-    // d3.select("#xAxisG").call(x_axis);
-
-
     console.log("updating the axis");
     y_scale = d3.scale.linear().domain([min_average_speed, max_average_speed]).range([500, 0])
     y_axis.scale(y_scale)
     d3.select("#yAxisG").call(y_axis)
 
     x_scale = d3.time.scale().domain(start_end).range([margin,w-margin])
-    x_axis.scale(x_scale)
+    x_axis.scale(x_scale)    
     d3.select("#xAxisG").call(x_axis)
-
-    // d3.select("#vizcontainer svg").call(zoom)
+    zoom.x(x_scale) // Have to set zoom.x again because we are overriding x_scale
 }
 
 function update_display_averages(){
