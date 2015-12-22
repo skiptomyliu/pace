@@ -12,7 +12,7 @@ function unhighlight(d) {
 
 function highlight(d) {
     d3.select(d3.event.target).classed("active",true)
-        .style("fill", function(){ return "red" })
+        .style("fill", function(){ return d3.rgb(206, 112, 88) })
     this.parentElement.appendChild(this); //Move tooltip to the front
 
     var coord = (d3.transform(d3.select(this).attr("transform"))).translate
