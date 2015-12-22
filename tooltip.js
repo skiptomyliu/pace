@@ -1,14 +1,19 @@
 
 
 
-function unhighlight(d){
-        d.classed("active", false)
+function unhighlight(d) {
+    d3.select("#tooltip").classed("hidden", true)
+    d3.select(this).classed("inactive",true)
+    d3.select(d3.event.target).transition().duration(500)
+        .style("fill", function(d){
+            return color_scale(d.distance_miles)
+        })
 }
 
-function highlightRegion(d) {
+function highlight(d) {
     d3.select(d3.event.target).classed("active",true)
-        .style("fill", function(){return "red"})
-        this.parentElement.appendChild(this);
+        .style("fill", function(){ return "red" })
+    this.parentElement.appendChild(this); //Move tooltip to the front
 
     var coord = (d3.transform(d3.select(this).attr("transform"))).translate
     var x = coord[0]
@@ -28,13 +33,16 @@ function highlightRegion(d) {
 
     d3.select("#tooltip #run_date")
        .text(date_time)
+
     d3.select("#tooltip #run_date_end")
        .text(date_time_end)
        
     d3.select("#tooltip #run_distance")
        .text(parseFloat(d.distance_miles).toPrecision(4))
+
     d3.select("#tooltip #run_pace")
        .text(d.average_min_per_mi.toPrecision(4))
+
     d3.select("#tooltip").classed("hidden", false);
 
     var tooltipRect = tooltip.node().getBoundingClientRect()
@@ -43,3 +51,4 @@ function highlightRegion(d) {
         .style("left", (x-tooltipRect.width/2.5) + "px")
         .style("top", y-tooltipRect.height+ "px")
 }
+

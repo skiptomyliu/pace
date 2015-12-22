@@ -95,30 +95,19 @@ function zooming() {
         d3.select("#vizcontainer svg").call(zoom)
         var threshold = calculate_bubble_thresh()
         sub_runs = get_runs_window(focused_runs)
-        calculate_ranges(sub_runs)
+        update_ranges(sub_runs)
         d3.select("#xAxisG")
             .call(x_axis);
+            
         d3.selectAll("circle")
             .attr("transform", translate_runs)
 
-        draw_elevation_chart(focused_runs)
+        d3.selectAll("rect")
+            .attr("transform", translate_elevations)
     }   
 }
 
 function zoomend(){
-    d3.select("#vizcontainer svg").call(zoom)
-    container.selectAll("rect.selection").remove(); // remove selection rectangle
-    // d3.selectAll('g.state.selection').classed("selection", false); // remove temporary selection marker class
-
-    console.log("displaying run data")
-    // d3.selectAll('circle').selectAll('.selected').each(function(run_data,i){
-
-    d3.selectAll('.selected').each(function(run_data,i){
-        selectedRuns.add(run_data)
-    });
-
-    d3.selectAll('.selected').classed("selected", false);
-
     // Resume zoom/pan from saved state to prevent jumpiness
     if (savedScale !== null){
         zoom.scale(savedScale);
@@ -128,31 +117,34 @@ function zoomend(){
         zoom.translate(savedTranslation);
         savedTranslation = null;
     }
+    container.selectAll("rect.selection").remove(); // remove selection rectangle
 
-    var threshold = calculate_bubble_thresh()
+    // Add runs we have selected
+    d3.selectAll('.selected').each(function(run_data,i){
+        selectedRuns.add(run_data)
+    });
+    d3.selectAll('.selected').classed("selected", false);
 
     // If we have selected runs, we set the new focus of runs
     if (selectedRuns.size) {
         console.log(selectedRuns.size) 
         sub_runs = Array.from(selectedRuns)
         focused_runs = sub_runs;
+        //update_axis
     } 
+    refresh_data_window(focused_runs)
+}
+
+function refresh_data_window(focused_runs) {
     // Remove runs that fall outside our view
     sub_runs = get_runs_window(focused_runs)
-
-    // if (selectedRuns.size){
-        // update_axis()
-    // }
-
-    calculate_ranges(sub_runs)
-
-    if (draw_avg){
-        draw_weighted_avg(sub_runs)
-    }
-    var bubble_data = bubble(sub_runs, threshold)
+    update_ranges(sub_runs)
+    // draw_weighted_avg(sub_runs)
+    update_axis()
+    bubble_data = bubble(sub_runs, calculate_bubble_thresh())
     draw_bubbles(bubble_data)
 
     update_display_averages()
-    draw_elevation_chart(focused_runs)
+    draw_elevation_chart(bubble_data)
 }
 
