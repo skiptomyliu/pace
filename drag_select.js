@@ -116,8 +116,12 @@ function zoomend(){
     container.selectAll("rect.selection").remove(); // remove selection rectangle
 
     // Add runs we have selected
-    d3.selectAll('.selected').each(function(run_data,i){
-        selectedRuns.add(run_data)
+    d3.selectAll('.selected').each(function(bubble,i){
+        console.log(bubble)
+        bubble.runs.forEach(function(run){
+            selectedRuns.add(run)
+        })
+        
     });
     d3.selectAll('.selected').classed("selected", false);
 

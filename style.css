@@ -8,7 +8,14 @@ h2 {
 }
 
 p {
-    font-size: 0.875em; /* 14px/16=0.875em */
+  font: 10px sans-serif;
+    /*font-size: 0.875em;  14px/16=0.875em */
+}
+
+
+#stats p {
+  font: 12px sans-serif;
+    /*font-size: 0.875em;  14px/16=0.875em */
 }
 
 .axis text {

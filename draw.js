@@ -1,6 +1,7 @@
 
 var w = 1400;
 var h = 500;
+var h_e = 200;
 var margin = 50;
 var pace_margin = .10; //+-6 seconds on chart
 
@@ -176,10 +177,12 @@ function draw_bubbles(bubbles){
         .remove(); 
 }
 
-var y_scale_elevation = d3.scale.linear().domain([0, 2500]).range([0, 200])
+// Move this somewhere appropriate
+var y_scale_elevation = d3.scale.linear().domain([1500, 0]).range([0, h_e])
 
 function translate_elevations(d,i){
-    return "translate("+x_scale(d.run_time)+","+(h-y_scale_elevation(d.total_elevation_gain))+")"
+    console.log(y_scale_elevation(1500-d.total_elevation_gain))
+    return "translate("+x_scale(d.run_time)+","+(h-y_scale_elevation(1500-d.total_elevation_gain))+")"
 }
 
 function draw_elevation_chart(bubbles){
@@ -191,13 +194,11 @@ function draw_elevation_chart(bubbles){
         .style("stroke-width", "1px")
         .style("fill", d3.rgb(122, 195,106))
         .style("opacity", .50)
-        // .style("stroke", "black")
-        // .style("stroke", "red")
         .attr('width',10)
 
     grects
         .attr("transform", translate_elevations)
-        .attr("height", function(d) {return y_scale_elevation(d.total_elevation_gain)})
+        .attr("height", function(d) {return y_scale_elevation(1500-d.total_elevation_gain)})
 
     grects.exit()
         .transition().duration(500)
@@ -244,6 +245,15 @@ function canvas_viz() {
         .attr("class", "x axis")
         .attr("transform","translate(0,"+(h)+")")
         .call(x_axis)
+
+
+    y_axis_elevation = d3.svg.axis().scale(y_scale_elevation).orient("right")
+    var yaxiselevationg = d3.select("svg g").append("g")
+        .attr("id", "yAxisElevationG")
+        .attr("class", "y axis")
+        .attr("transform", "translate("+(w-margin)+","+(h-h_e)+")")
+        .call(y_axis_elevation)
+
     update_axis()
 
     /*
