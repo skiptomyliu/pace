@@ -53,6 +53,7 @@ var start_end
 var max_distance_miles
 var total_elevation_gain
 var max_elevation_gain
+var max_elevation_gain_f
 var x_scale
 var y_scale
 // var total_elevation_gain
@@ -97,8 +98,10 @@ d3.json("content.json",
         });
 
         update_ranges(run_data)
+        max_elevation_gain_f = max_elevation_gain + 50
         x_scale = d3.time.scale().domain(start_end).range([margin,w-margin]);
         y_scale = d3.scale.linear().domain([min_average_speed, max_average_speed]).range([500, 0])
+        y_scale_elevation = d3.scale.linear().domain([max_elevation_gain_f, 0]).range([0, h_e])
 
         all_runs = run_data
         focused_runs = all_runs
@@ -178,11 +181,11 @@ function draw_bubbles(bubbles){
 }
 
 // Move this somewhere appropriate
-var y_scale_elevation = d3.scale.linear().domain([1500, 0]).range([0, h_e])
+
 
 function translate_elevations(d,i){
-    console.log(y_scale_elevation(1500-d.total_elevation_gain))
-    return "translate("+x_scale(d.run_time)+","+(h-y_scale_elevation(1500-d.total_elevation_gain))+")"
+    console.log(max_elevation_gain)
+    return "translate("+x_scale(d.run_time)+","+(h-y_scale_elevation(max_elevation_gain_f-d.total_elevation_gain))+")"
 }
 
 function draw_elevation_chart(bubbles){
@@ -198,7 +201,7 @@ function draw_elevation_chart(bubbles){
 
     grects
         .attr("transform", translate_elevations)
-        .attr("height", function(d) {return y_scale_elevation(1500-d.total_elevation_gain)})
+        .attr("height", function(d) {return y_scale_elevation(max_elevation_gain_f-d.total_elevation_gain)})
 
     grects.exit()
         .transition().duration(500)
@@ -232,7 +235,7 @@ function canvas_viz() {
     radius_scale = d3.scale.linear().domain([0, max_distance_miles]).range([1,20])
 
     y_axis = d3.svg.axis().scale(y_scale).orient("left")
-        .tickFormat(function(d){return min_per_mi_str(d)})
+        .tickFormat(function(d){ return min_per_mi_str(d)} )
     var yaxisg = d3.select("svg g").append("g")
         .attr("id", "yAxisG")
         .attr("class", "y axis")
@@ -248,6 +251,8 @@ function canvas_viz() {
 
 
     y_axis_elevation = d3.svg.axis().scale(y_scale_elevation).orient("right")
+        .tickFormat(function(d){ return m_to_ft(d).toFixed(0)+" ft"})
+        .ticks(10)
     var yaxiselevationg = d3.select("svg g").append("g")
         .attr("id", "yAxisElevationG")
         .attr("class", "y axis")
@@ -275,8 +280,8 @@ function canvas_viz() {
 }
 
 function update_axis(){
+
     console.log("updating the axis");
-    y_scale = d3.scale.linear().domain([min_average_speed-pace_margin, max_average_speed+pace_margin]).range([500, 0])
     y_axis.scale(y_scale)
     d3.select("#yAxisG").call(y_axis)
 
