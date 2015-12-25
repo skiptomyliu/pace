@@ -54,6 +54,8 @@ var max_distance_miles
 var total_elevation_gain
 var max_elevation_gain
 var max_elevation_gain_f
+var max_run_duration
+
 var x_scale
 var y_scale
 // var total_elevation_gain
@@ -80,6 +82,10 @@ function update_ranges(run_data){
 
     max_elevation_gain = d3.max(run_data, function(el){
         return el.total_elevation_gain
+    })
+
+    max_run_duration = d3.max(run_data, function(el){
+        return el.elapsed_time
     })
 }
 
@@ -294,9 +300,10 @@ function update_axis(){
 function update_display_averages(){
     d3.select("#pace_fastest").text(min_per_mi_str(min_average_speed))
     d3.select("#pace_slowest").text(min_per_mi_str(max_average_speed))
-    d3.select("#pace_longest").text(max_distance_miles.toFixed(2))
+    d3.select("#pace_farthest").text(max_distance_miles.toFixed(2))
     d3.select("#pace_total_elevation").text(m_to_ft(total_elevation_gain).toFixed(0)+" ft")
     d3.select("#pace_max_elevation").text(m_to_ft(max_elevation_gain).toFixed(0)+" ft")
+    d3.select("#pace_duration").text(sec_to_hours(max_run_duration))
     // d3.select("#pace_slowest").text()
     // d3.select("#pace_slowest")
 }

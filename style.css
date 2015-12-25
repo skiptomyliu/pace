@@ -79,3 +79,10 @@ circle.outer {
     stroke-opacity  : 0.5;
     fill            : transparent;
 }
+
+
+#strava_auth img {
+    width: 159px;
+    height: 31px;
+    /*border: 3px solid #73AD21;*/
+}

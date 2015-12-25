@@ -32,6 +32,13 @@ function min_per_mi_str(decimal) {
     return min+":"+seconds+"/mi"
 }
 
+function sec_to_hours(seconds) {
+    hours = seconds/(60*60)
+    minutes = (hours%1)*60
+    seconds = (minutes)%1*60
+    return hours.toFixed(0)+":"+minutes.toFixed(0)+":"+seconds.toFixed(0)
+}
+
     // var points = 7
     // var weighted_bin = []
     // for(i=0; i<incoming_data.length; i+=points){
