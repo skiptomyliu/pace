@@ -98,7 +98,7 @@ function zooming() {
         d3.selectAll("circle")
             .attr("transform", translate_runs)
 
-        d3.selectAll("rect")
+        d3.selectAll(".elevation_rect")
             .attr("transform", translate_elevations)
     }   
 }

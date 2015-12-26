@@ -97,8 +97,10 @@ d3.json("content.json",
         });
 
         // Add additional attributes to our run object
-        data.forEach(function (el){
-            el.run_time = new Date(el.start_date_local)
+        run_data.forEach(function (el){
+            // console.log(el.start_date_local)
+            // console.log(el.name)
+            el.run_time = new Date(el.start_date)
             el.average_min_per_mi = 26.8224/el.average_speed // Convert to min/mi
             el.distance_miles = el.distance * 0.000621371
         });
@@ -115,6 +117,7 @@ d3.json("content.json",
 
         canvas_viz()
         data_viz(all_runs)
+        draw_calendar(all_runs)
     }
 );
 
@@ -190,7 +193,6 @@ function draw_bubbles(bubbles){
 
 
 function translate_elevations(d,i){
-    console.log(max_elevation_gain)
     return "translate("+x_scale(d.run_time)+","+(h-y_scale_elevation(max_elevation_gain_f-d.total_elevation_gain))+")"
 }
 
@@ -203,6 +205,7 @@ function draw_elevation_chart(bubbles){
         .style("stroke-width", "1px")
         .style("fill", d3.rgb(122, 195,106))
         .style("opacity", .50)
+        .attr("class", "elevation_rect")
         .attr('width',10)
 
     grects
@@ -286,7 +289,6 @@ function canvas_viz() {
 }
 
 function update_axis(){
-
     console.log("updating the axis");
     y_axis.scale(y_scale)
     d3.select("#yAxisG").call(y_axis)
