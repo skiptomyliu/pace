@@ -82,6 +82,8 @@ function update_ranges(run_data){
         return el.total_elevation_gain
     })
 
+    max_elevation_gain_f = max_elevation_gain + 50;
+
     max_run_duration = d3.max(run_data, function(el){
         return el.elapsed_time
     })
@@ -89,11 +91,18 @@ function update_ranges(run_data){
 
 canvas_viz();
 
-for (var i=1; i <= 1; i++ ) { 
+d3.json("content.json", 
+    function(error, data) {
+        draw_it(data)
+    }
+);
+
+for (var i=1; i<=3; i++ ) { 
     d3.xhr('http://localhost:3000/activities?page='+i)
         .header("Content-Type", "application/json")
         .get(
             function(err, rawData) {
+                console.log(rawData)
                 var data = JSON.parse(rawData.response);
                 draw_it(data);
             }
@@ -101,67 +110,64 @@ for (var i=1; i <= 1; i++ ) {
 }
             
 function draw_it(data) {
-    if (!data){
-
-        return;
-    }else {
-        console.log(data)
-    }
     console.log("drawing it")
-// d3.json("content.json", 
-    // function(error, data) {
-        // Get runs only
+    console.log(data)
 
-        var run_data = data.filter(function (data){
-            return data.type == "Run" && data.average_speed > 2.2352 //12 min / mi;
-        });
+    var run_data = data.filter(function (data){
+        return data.type == "Run" && data.average_speed > 2.2352 //12 min / mi;
+    });
 
-        // Add additional attributes to our run object
-        run_data.forEach(function (el){
-            // console.log(el.start_date_local)
-            // console.log(el.name)
-            el.run_time = new Date(el.start_date)
-            el.average_min_per_mi = 26.8224/el.average_speed // Convert to min/mi
-            el.distance_miles = el.distance * 0.000621371
-        });
+    // Add additional attributes to our run object
+    run_data.forEach(function (el){
+        el.run_time = new Date(el.start_date)
+        el.average_min_per_mi = 26.8224/el.average_speed // Convert to min/mi
+        el.distance_miles = el.distance * 0.000621371
+    });
 
-        // all_runs = run_data
-        all_runs = all_runs.concat(run_data)
-        all_runs.sort(compare);
-        update_ranges(all_runs)
+    all_runs = all_runs.concat(run_data)
+    all_runs.sort(compare);
+    update_ranges(all_runs)
 
-        console.log(all_runs.length)
-        focused_runs = all_runs
-        sub_runs = all_runs
+    console.log(all_runs.length)
+    focused_runs = all_runs
+    sub_runs = all_runs
 
-        // canvas_viz()
-        update_ranges(focused_runs)
-        update_scales()
-        update_axis()
-        data_viz(all_runs)
-        // draw_calendar(all_runs)
-    }
+    update(focused_runs)
+    data_viz(all_runs)
+    // draw_calendar(all_runs)
+}
+
+function update(runs) {
+    update_ranges(runs)
+    update_scales()
+    update_axis()
+}
 // );
 
 function data_viz(focused_runs) {
     // Remove runs that fall outside our view
     // sub_runs = get_runs_window(focused_runs)
 
-    // update_ranges(focused_runs)
+    
     // // draw_weighted_avg(sub_runs)
     // // if (selectedRuns.size){
     // update_scales()
     // update_axis()
     // }
-    bubble_data = bubble(focused_runs, calculate_bubble_thresh())
-    draw_bubbles(bubble_data)
+    if(focused_runs) {
+        // update_ranges(focused_runs)
+        bubble_data = bubble(focused_runs, calculate_bubble_thresh())
+        draw_bubbles(bubble_data)
+        draw_elevation_chart(bubble_data)
+        update_display_averages()
 
-    update_display_averages()
-    // draw_elevation_chart(bubble_data)
+    }
+    
 }
 
 
 function get_runs_window(all_runs){
+
     var window_time = new Date(x_scale.domain()[1].getTime()+1*86400000);
     sub_runs = all_runs.filter(function (all_runs){
         var start_time = new Date()
@@ -213,9 +219,6 @@ function draw_bubbles(bubbles){
         .remove(); 
 }
 
-// Move this somewhere appropriate
-
-
 function translate_elevations(d,i){
     return "translate("+x_scale(d.run_time)+","+(h-y_scale_elevation(max_elevation_gain_f-d.total_elevation_gain))+")"
 }
@@ -234,7 +237,7 @@ function draw_elevation_chart(bubbles){
 
     grects
         .attr("transform", translate_elevations)
-        .attr("height", function(d) {return y_scale_elevation(max_elevation_gain_f-d.total_elevation_gain)})
+        .attr("height", function(d) { return y_scale_elevation(max_elevation_gain_f-d.total_elevation_gain) })
 
     grects.exit()
         .transition().duration(500)
@@ -267,8 +270,6 @@ function canvas_viz() {
     Draw axis
 
     */
-    
-
     y_axis = d3.svg.axis().scale(y_scale).orient("left")
         .tickFormat(function(d){ return min_per_mi_str(d)} )
     var yaxisg = d3.select("svg g").append("g")
@@ -329,10 +330,9 @@ function update_axis(){
     d3.select("#xAxisG").call(x_axis)
     zoom.x(x_scale) // Have to set zoom.x again because we are overriding x_scale
 
-    y_scale_elevation = d3.scale.linear().domain([max_elevation_gain, 0]).range([0, h_e])
+    y_scale_elevation = d3.scale.linear().domain([max_elevation_gain_f, 0]).range([0, h_e])
     y_axis_elevation.scale(y_scale_elevation)
     d3.select("#yAxisElevationG").call(y_axis_elevation)
-
 }
 
 function update_display_averages(){

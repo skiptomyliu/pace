@@ -89,9 +89,9 @@ function zooming() {
             });
         }
     } else {
-        var threshold = calculate_bubble_thresh()
-        sub_runs = get_runs_window(focused_runs)
-        update_ranges(sub_runs)
+        // var threshold = calculate_bubble_thresh()
+        // sub_runs = get_runs_window(focused_runs)
+        // update_ranges(sub_runs)
         d3.select("#xAxisG")
             .call(x_axis);
         
@@ -129,6 +129,9 @@ function zoomend(){
     if (selectedRuns.size) {
         sub_runs = Array.from(selectedRuns)
         focused_runs = sub_runs;
+        update_ranges(sub_runs)
+        update_scales()
+        update_axis()
     } 
     data_viz(focused_runs)
 }
