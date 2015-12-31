@@ -6,10 +6,10 @@ var margin = 50;
 var pace_margin = .10; //+-6 seconds on chart
 
 // 4 buckets
-var all_runs = [];       // all runs, this will never change
-var focused_runs;   // saved bucket of runs that the user has selected, becomes all_runs
-var sub_runs;       // used for calculations based on focused_runs
-var selected_runs;  // runs selected by user, short lived on each shift+click
+var all_runs = [];      // all runs, this will never change
+var focused_runs;       // saved bucket of runs that the user has selected, becomes all_runs
+var sub_runs;           // used for calculations based on focused_runs
+var selected_runs;      // runs selected by user, short lived on each shift+click
 var bubble_data;    
 var draw_avg = false
 
@@ -56,7 +56,7 @@ var max_run_duration = 0
 
 var x_scale
 var y_scale
-// var total_elevation_gain
+
 function update_ranges(run_data){
     max_average_speed = d3.max(run_data, function(el){
         return el.average_min_per_mi
@@ -91,28 +91,15 @@ function update_ranges(run_data){
 
 canvas_viz();
 
-d3.json("content.json", 
-    function(error, data) {
-        draw_it(data)
-    }
-);
+queue()
+    .defer(d3.json, "/activities")
+    .await(handle_queue);
 
-for (var i=1; i<=3; i++ ) { 
-    d3.xhr('http://localhost:3000/activities?page='+i)
-        .header("Content-Type", "application/json")
-        .get(
-            function(err, rawData) {
-                console.log(rawData)
-                var data = JSON.parse(rawData.response);
-                draw_it(data);
-            }
-        );
+function handle_queue(error,data){
+    draw_it(data)
 }
-            
-function draw_it(data) {
-    console.log("drawing it")
-    console.log(data)
 
+function draw_it(data) {
     var run_data = data.filter(function (data){
         return data.type == "Run" && data.average_speed > 2.2352 //12 min / mi;
     });
