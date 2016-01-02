@@ -1,3 +1,4 @@
+
 var u_w = 10
 
 canvas_calendar()
@@ -12,14 +13,15 @@ function canvas_calendar(){
 }
 
 function draw_calendar(runs) {
-    runs=runs.sort(compare)
+    runs = runs.sort(compare)
     var calendar_canvas = d3.select("#calendar_canvas")
     var calendar_units = calendar_canvas.selectAll(".calendar_unit").data(runs);
 
-    var cur_date = runs[1].run_time
-    var j=0;
-    var i=1;
-    var k=0;
+    var cur_date = runs[0].run_time
+    var i=0,
+        j=0,
+        k=0;
+
     while ( i < runs.length ) {
         var run = runs[i]
         if (run.run_time.toDateString() == cur_date.toDateString()) {
@@ -39,7 +41,7 @@ function draw_calendar(runs) {
             .style("stroke", "black")
             .style("stroke-width", "1px")
             .style("fill", color)
-            .style("opacity", .75)
+            // .style("opacity", .75)
             .attr("class", "calendar_unit")
             .attr("width",u_w)
             .attr("height",u_w)
