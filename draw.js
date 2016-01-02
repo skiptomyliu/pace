@@ -95,7 +95,9 @@ queue()
     .defer(d3.json, "/activities")
     .await(handle_queue);
 
-function handle_queue(error,data){
+function handle_queue(error, data){
+    console.log(error)
+    console.log(data)
     draw_it(data)
 }
 
@@ -129,7 +131,6 @@ function update(runs) {
     update_scales()
     update_axis()
 }
-// );
 
 function data_viz(focused_runs) {
     // Remove runs that fall outside our view
@@ -147,14 +148,11 @@ function data_viz(focused_runs) {
         draw_bubbles(bubble_data)
         draw_elevation_chart(bubble_data)
         update_display_averages()
-
     }
     
 }
 
-
 function get_runs_window(all_runs){
-
     var window_time = new Date(x_scale.domain()[1].getTime()+1*86400000);
     sub_runs = all_runs.filter(function (all_runs){
         var start_time = new Date()
