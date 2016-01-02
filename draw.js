@@ -96,8 +96,6 @@ queue()
     .await(handle_queue);
 
 function handle_queue(error, data){
-    console.log(error)
-    console.log(data)
     draw_it(data)
 }
 
