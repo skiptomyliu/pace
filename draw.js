@@ -162,7 +162,7 @@ function draw_it(data) {
 
     update(focused_runs)
     data_viz(all_runs)
-    // draw_calendar(all_runs)
+    draw_calendar(all_runs)
 }
 
 function update(runs) {
