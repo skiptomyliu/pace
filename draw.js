@@ -47,6 +47,7 @@ function bubble(runs, days) {
 
 var max_average_speed = 0
 var min_average_speed = 0
+var average_speed = 0
 var start_end = [0,200]
 var max_distance_miles = 0
 var total_elevation_gain = 0
@@ -87,6 +88,15 @@ function update_ranges(run_data){
     max_run_duration = d3.max(run_data, function(el){
         return el.elapsed_time
     })
+
+    average_speed = 0
+    distance = 0
+    run_data.forEach(function (run) {
+        average_speed = avg_pace(distance, average_speed, run.distance_miles, run.average_min_per_mi)
+        distance+=run.distance_miles
+    });
+    console.log(average_speed)
+
 }
 
 function bucket_runs(runs) {
@@ -143,7 +153,7 @@ function draw_it(data) {
     run_data.forEach(function (el){
         el.run_time = new Date(el.start_date)
         el.average_min_per_mi = 26.8224/el.average_speed // Convert to min/mi
-        el.distance_miles = el.distance * 0.000621371
+        el.distance_miles = m_to_mi(el.distance)
     });
 
     all_runs = all_runs.concat(run_data)
@@ -362,6 +372,7 @@ function update_axis(){
 function update_display_averages() {
     d3.select("#pace_fastest").text(min_per_mi_str(min_average_speed))
     d3.select("#pace_slowest").text(min_per_mi_str(max_average_speed))
+    d3.select("#pace_avg").text(min_per_mi_str(average_speed))
     d3.select("#pace_farthest").text(max_distance_miles.toFixed(2))
     d3.select("#pace_total_elevation").text(m_to_ft(total_elevation_gain).toFixed(0)+" ft")
     d3.select("#pace_max_elevation").text(m_to_ft(max_elevation_gain).toFixed(0)+" ft")

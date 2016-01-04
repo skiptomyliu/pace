@@ -4,9 +4,9 @@ var u_w = 10
 canvas_calendar()
 
 
-function Grid(distance, date) {
-    this.distance_miles = distance
-    this.start_date = date
+function Grid(run) {
+    this.distance_miles = run.distance_miles
+    this.start_date = run.run_time
     this.tooltip_html = function() {
         var date_time = (month[this.start_date.getMonth()])+" "+this.start_date.getDate() + " " + this.start_date.getFullYear()
         return "<p>"+date_time+"</p> \
@@ -39,7 +39,8 @@ function draw_calendar(runs) {
     while ( i < runs.length ) {
         var run = runs[i]
         if (run.run_time.toDateString() == cur_date.toDateString()) {
-            // data.push(new Grid(run))
+            data.push(new Grid(run))
+            
             color = color_scale(run.distance_miles)
             cur_date = new Date(cur_date.getTime() - (one_day))
 
