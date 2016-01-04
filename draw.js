@@ -114,11 +114,11 @@ function bucket_runs(runs) {
         return run.average_min_per_mi
     })
 
-    fastest_hm = d3.min(runs_hm, function(run){
+    fastest_half = d3.min(runs_hm, function(run){
         return run.average_min_per_mi
     })
 
-    fastest_mar = d3.min(runs_mar, function(run){
+    fastest_full = d3.min(runs_mar, function(run){
         return run.average_min_per_mi
     })
 }
@@ -150,8 +150,6 @@ function draw_it(data) {
     all_runs.sort(compare);
 
     bucket_runs(run_data)
-    console.log(fastest_mar)
-
     update_ranges(all_runs)
 
     console.log(all_runs.length)
@@ -161,10 +159,13 @@ function draw_it(data) {
     update(focused_runs)
     data_viz(all_runs)
     draw_calendar(all_runs)
+    draw_total_distance(all_runs)
 }
 
 function update(runs) {
     update_ranges(runs)
+    bucket_runs(runs)
+    update_display_averages()
     update_scales()
     update_axis()
 }
@@ -187,7 +188,6 @@ function data_viz(focused_runs) {
         draw_elevation_chart(bubble_data)
         update_display_averages()
     }
-    
 }
 
 function get_runs_window(all_runs){
@@ -359,14 +359,16 @@ function update_axis(){
     d3.select("#yAxisElevationG").call(y_axis_elevation)
 }
 
-function update_display_averages(){
+function update_display_averages() {
     d3.select("#pace_fastest").text(min_per_mi_str(min_average_speed))
     d3.select("#pace_slowest").text(min_per_mi_str(max_average_speed))
     d3.select("#pace_farthest").text(max_distance_miles.toFixed(2))
     d3.select("#pace_total_elevation").text(m_to_ft(total_elevation_gain).toFixed(0)+" ft")
     d3.select("#pace_max_elevation").text(m_to_ft(max_elevation_gain).toFixed(0)+" ft")
     d3.select("#pace_duration").text(sec_to_hours(max_run_duration))
-    // d3.select("#pace_slowest").text()
-    // d3.select("#pace_slowest")
+    d3.select("#pace_pr_5k").text(min_per_mi_str(fastest_5k))
+    d3.select("#pace_pr_10k").text(min_per_mi_str(fastest_10k))
+    d3.select("#pace_pr_half").text(min_per_mi_str(fastest_half))
+    d3.select("#pace_pr_full").text(min_per_mi_str(fastest_full))
 }
 

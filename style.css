@@ -39,7 +39,7 @@ p {
   stroke-width: 0.4px;
 }
 
-#tooltip {
+.tooltip {
     position: absolute;
     width: 200px;
     height: auto;
@@ -55,11 +55,11 @@ p {
     pointer-events: none;
 }
 
-#tooltip.hidden {
+.tooltip.hidden {
     display: none;
 }
 
-#tooltip p {
+.tooltip p {
     margin: 0;
     font-family: helvetica;
     font-size: 16px;
@@ -85,4 +85,36 @@ circle.outer {
     width: 159px;
     height: 31px;
     /*border: 3px solid #73AD21;*/
+}
+
+
+
+
+.d3-tip {
+  line-height: 1;
+  font-weight: bold;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 2px;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+  box-sizing: border-box;
+  display: inline;
+  font-size: 10px;
+  width: 100%;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.8);
+  content: "\25BC";
+  position: absolute;
+  text-align: center;
+}
+
+/* Style northward tooltips differently */
+.d3-tip.n:after {
+  margin: -1px 0 0 0;
+  top: 100%;
+  left: 0;
 }

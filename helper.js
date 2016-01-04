@@ -22,12 +22,17 @@ function m_to_ft(m){
     return m*3.28084
 }
 
+function m_to_mi(m){
+    return m * 0.000621371 
+}
+
 function pad(num, size){ 
     return ('000000' + num).substr(-size); 
 }
 
 function min_per_mi_str(decimal) {
-    seconds = pad(((decimal%1) * 60).toFixed(0),2).toString()
+    seconds = pad(((decimal%1) * 59.8).toFixed(0), 2).toString()
+    
     min = parseInt(decimal).toString()
     return min+":"+seconds+"/mi"
 }
