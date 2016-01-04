@@ -291,7 +291,7 @@ function canvas_viz() {
         .on("zoom",         zooming)
         .on("zoomend",      zoomend)
 
-    var canvas = d3.select("#vizcontainer")
+    var canvas = d3.select("#pace_container")
         .append("svg")
             .attr("width", w+margin)
             .attr("height", h+margin-20)

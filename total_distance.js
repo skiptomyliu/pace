@@ -29,11 +29,9 @@ function translate_distances(d,i){
 var date_bins = []
 var distance_bins = []
 function draw_total_distance(runs) {
-    // var date_bins = []
     var distance_canvas = d3.select("#distance_canvas")
 
     runs.reverse()
-
 
     var cur_date = runs[0].run_time
     date_bins.push(cur_date)
@@ -62,17 +60,16 @@ function draw_total_distance(runs) {
 
     y_scale_distances = d3.scale.linear().domain([0,max_distance]).range([0, h])
     y_axis_distance = d3.svg.axis().scale(y_scale_distances).orient("left")
-        // .tickFormat(function(d){ return m_to_ft(d).toFixed(0)+" ft"})
         .ticks(10)
 
-    var yaxisdistanceg = d3.select("svg g").append("g")
+    var yaxisdistanceg = distance_canvas.append("g")
         .attr("id", "yAxisDistanceG")
         .attr("class", "y axis")
         .attr("transform", "translate("+(margin)+","+(0)+")")
         .call(y_axis_distance)
 
     x_axis_distance = d3.svg.axis().scale(x_scale).orient("bottom").ticks(10).tickSize(20,0)
-    var xaxisg = d3.select("svg g").append("g")
+    var xaxisg = distance_canvas.append("g")
         .attr("id", "xAxisG")
         .attr("class", "x axis")
         .attr("transform","translate(0,"+(h)+")")
