@@ -4,7 +4,7 @@
 Handle user interaction: zooming and selection
 
 */
-var container = d3.select("#vizcontainer")
+var container = d3.select("#pace_container")
 var savedTranslation = null;
 var savedScale = null;
 var selectedRuns = new Set();
