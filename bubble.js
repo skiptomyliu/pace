@@ -6,7 +6,7 @@ function BubbledRuns() {
     this.run_time
     this.run_time_end
     this.runs = []
-    this.name = "hi"
+    this.name = ""
     this.bubble_id = "b"+Math.ceil(Math.random()*100000000)
 
     // We loop through runs in a reverse chronological order
@@ -28,6 +28,22 @@ function BubbledRuns() {
         this.distance_miles += run.distance_miles
         this.total_elevation_gain += run.total_elevation_gain
         this.runs.push(run)
+    }
+
+    this.tooltip_html = function(){
+        var name = ""
+        if(this.runs.length < 2){
+            name = this.name
+        } 
+        var date_time = (month[this.run_time.getMonth()])+" "+this.run_time.getDate() + " " + this.run_time_end.getFullYear()
+        if(this.runs.length > 1){
+            date_time = (month[this.run_time.getMonth()])+" "+this.run_time.getDate() + " - " + this.run_time_end.getDate() + " " + this.run_time_end.getFullYear()
+        }
+        return "<p><span id=\"run_date\">"+date_time+"</span> \
+            <p><strong><a target=\"_blank\" href=\"http://\"><span id=\"run_title\">"+name+"</span></a></strong></p> \
+            <p><span id=\"run_distance\">"+parseFloat(this.distance_miles).toPrecision(2)+"</span> mi</p> \
+            <p><span id=\"run_pace\">"+min_per_mi_str(this.average_min_per_mi)+"</span></p> \
+            <p><span id=\"run_elevation\">"+m_to_ft(this.total_elevation_gain).toFixed(0)+"ft"+"</span></p>"
     }
 }
 

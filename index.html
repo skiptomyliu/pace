@@ -5,14 +5,10 @@
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
     <body>
-        <div id="tooltip" class="hidden">
-            <p><span id="run_date">12/5/2015</span>
-            <span id="run_date_end"></span></p>
-            <p><strong><a target="_blank" href="http://"><span id="run_title">TNF 2015</span></a></strong></p>
-            <p><span id="run_distance">26.2</span> mi</p>
-            <p><span id="run_pace">8</span></p>
-            <p><span id="run_elevation"></span></p>
+        <div id="tooltip" class="tooltip hidden">
         </div>
+
+        <div class="hidden" id="distance_container"></div>
 
         <div id="vizcontainer"></div>
         
@@ -24,13 +20,18 @@
             <p>Max duration: <a target="_blank" href="http://"><span id="pace_duration"></span></a></p>
             <p>Max Elevation: <a target="_blank" href="http://"><span id="pace_max_elevation"></span></a></p>
             <p>Total Elevation <a target="_blank" href="http://"><span id="pace_total_elevation"></span></a></p>
+            <p>5k: <a target="_blank" href="http://"><span id="pace_pr_5k"></span></a></p>
+            <p>10k: <a target="_blank" href="http://"><span id="pace_pr_10k"></span></a></p>
+            <p>Half: <a target="_blank" href="http://"><span id="pace_pr_half"></span></a></p>
+            <p>Full: <a target="_blank" href="http://"><span id="pace_pr_full"></span></a></p>
+
         </div>
 
         <div id="strava_auth">
             <a href="https://www.strava.com/oauth/authorize?client_id=8982&response_type=code&redirect_uri=http://pace.skiptomyliu.com/auth/strava/callback"><img src="./images/ConnectWithStrava@2x.png"></a>
         </div>
 
-        <div id="calendar_container"></div>
+        <div class="hidden" id="calendar_container"></div>
     </body>
     <script src="queue.js" type="text/javascript"></script>
     <script src="bubble.js" type="text/javascript"></script>
@@ -38,6 +39,7 @@
     <script src="tooltip.js" type="text/javascript"></script>
     <script src="drag_select.js" type="text/javascript"></script>
     <script src="draw.js" type="text/javascript"></script>
+    <script src="total_distance.js" type="text/javascript"></script>
     
     <script src="calendar.js" type="text/javascript"></script>
 </html>

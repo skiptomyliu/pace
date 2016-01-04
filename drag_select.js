@@ -131,6 +131,7 @@ function zoomend(){
         focused_runs = sub_runs;
         update_ranges(sub_runs)
         update_scales()
+        bucket_runs(sub_runs)
         update_axis()
     } 
     data_viz(focused_runs)

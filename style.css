@@ -13,6 +13,7 @@ p {
 }
 
 
+
 #stats p {
   font: 12px sans-serif;
     /*font-size: 0.875em;  14px/16=0.875em */
@@ -39,7 +40,7 @@ p {
   stroke-width: 0.4px;
 }
 
-#tooltip {
+.tooltip {
     position: absolute;
     width: 200px;
     height: auto;
@@ -55,11 +56,11 @@ p {
     pointer-events: none;
 }
 
-#tooltip.hidden {
+.tooltip.hidden {
     display: none;
 }
 
-#tooltip p {
+.tooltip p {
     margin: 0;
     font-family: helvetica;
     font-size: 16px;
@@ -80,9 +81,12 @@ circle.outer {
     fill            : transparent;
 }
 
-
 #strava_auth img {
     width: 159px;
     height: 31px;
     /*border: 3px solid #73AD21;*/
+}
+
+.hidden {
+    display: none;
 }

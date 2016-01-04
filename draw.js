@@ -47,6 +47,7 @@ function bubble(runs, days) {
 
 var max_average_speed = 0
 var min_average_speed = 0
+var average_speed = 0
 var start_end = [0,200]
 var max_distance_miles = 0
 var total_elevation_gain = 0
@@ -87,6 +88,49 @@ function update_ranges(run_data){
     max_run_duration = d3.max(run_data, function(el){
         return el.elapsed_time
     })
+
+    average_speed = 0
+    distance = 0
+    run_data.forEach(function (run) {
+        average_speed = avg_pace(distance, average_speed, run.distance_miles, run.average_min_per_mi)
+        distance+=run.distance_miles
+    });
+    console.log(average_speed)
+
+}
+
+function bucket_runs(runs) {
+    runs_10k = runs.filter(function (data){
+        return data.distance >= 9900 && data.distance <= 10150; // 6.1 to 6.3
+    });
+
+    runs_5k = runs.filter(function (data){
+        return data.distance >= 4900 && data.distance <= 5150; // 6.1 to 6.3
+    });
+
+    runs_hm = runs.filter(function (data){
+        return data.distance >= 20997.5 && data.distance <= 21247.5; // 6.1 to 6.3
+    });
+
+    runs_mar = runs.filter(function (data){
+        return data.distance >= 42003.88 && data.distance <= 43452.3; // 6.1 to 6.3
+    });
+
+    fastest_10k = d3.min(runs_10k, function(run){
+        return run.average_min_per_mi
+    })
+
+    fastest_5k = d3.min(runs_5k, function(run){
+        return run.average_min_per_mi
+    })
+
+    fastest_half = d3.min(runs_hm, function(run){
+        return run.average_min_per_mi
+    })
+
+    fastest_full = d3.min(runs_mar, function(run){
+        return run.average_min_per_mi
+    })
 }
 
 canvas_viz();
@@ -96,12 +140,11 @@ queue()
     .await(handle_queue);
 
 function handle_queue(error, data){
-    console.log(error)
-    console.log(data)
     draw_it(data)
 }
 
 function draw_it(data) {
+
     var run_data = data.filter(function (data){
         return data.type == "Run" && data.average_speed > 2.2352 //12 min / mi;
     });
@@ -110,11 +153,13 @@ function draw_it(data) {
     run_data.forEach(function (el){
         el.run_time = new Date(el.start_date)
         el.average_min_per_mi = 26.8224/el.average_speed // Convert to min/mi
-        el.distance_miles = el.distance * 0.000621371
+        el.distance_miles = m_to_mi(el.distance)
     });
 
     all_runs = all_runs.concat(run_data)
     all_runs.sort(compare);
+
+    bucket_runs(run_data)
     update_ranges(all_runs)
 
     console.log(all_runs.length)
@@ -123,14 +168,18 @@ function draw_it(data) {
 
     update(focused_runs)
     data_viz(all_runs)
-    // draw_calendar(all_runs)
+    draw_calendar(all_runs)
+    draw_total_distance(all_runs)
 }
 
 function update(runs) {
     update_ranges(runs)
+    bucket_runs(runs)
+    update_display_averages()
     update_scales()
     update_axis()
 }
+
 
 function data_viz(focused_runs) {
     // Remove runs that fall outside our view
@@ -149,7 +198,6 @@ function data_viz(focused_runs) {
         draw_elevation_chart(bubble_data)
         update_display_averages()
     }
-    
 }
 
 function get_runs_window(all_runs){
@@ -180,6 +228,7 @@ function translate_runs(d,i){
 function draw_bubbles(bubbles){ 
     var svg = d3.select("#runsG") // redo this variable
     var gcircles = svg.selectAll("circle").data(bubbles, function(d){ return (d.run_time_end) });
+
 
     gcircles.enter()
         .append("circle")
@@ -245,7 +294,7 @@ function canvas_viz() {
     var canvas = d3.select("#vizcontainer")
         .append("svg")
             .attr("width", w+margin)
-            .attr("height", h+margin)
+            .attr("height", h+margin-20)
             .call(zoom)
             .append("g")
             .attr("id", "canvas")
@@ -320,14 +369,17 @@ function update_axis(){
     d3.select("#yAxisElevationG").call(y_axis_elevation)
 }
 
-function update_display_averages(){
+function update_display_averages() {
     d3.select("#pace_fastest").text(min_per_mi_str(min_average_speed))
     d3.select("#pace_slowest").text(min_per_mi_str(max_average_speed))
+    d3.select("#pace_avg").text(min_per_mi_str(average_speed))
     d3.select("#pace_farthest").text(max_distance_miles.toFixed(2))
     d3.select("#pace_total_elevation").text(m_to_ft(total_elevation_gain).toFixed(0)+" ft")
     d3.select("#pace_max_elevation").text(m_to_ft(max_elevation_gain).toFixed(0)+" ft")
     d3.select("#pace_duration").text(sec_to_hours(max_run_duration))
-    // d3.select("#pace_slowest").text()
-    // d3.select("#pace_slowest")
+    d3.select("#pace_pr_5k").text(min_per_mi_str(fastest_5k))
+    d3.select("#pace_pr_10k").text(min_per_mi_str(fastest_10k))
+    d3.select("#pace_pr_half").text(min_per_mi_str(fastest_half))
+    d3.select("#pace_pr_full").text(min_per_mi_str(fastest_full))
 }
 
