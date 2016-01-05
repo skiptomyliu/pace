@@ -95,8 +95,6 @@ function update_ranges(run_data){
         average_speed = avg_pace(distance, average_speed, run.distance_miles, run.average_min_per_mi)
         distance+=run.distance_miles
     });
-    console.log(average_speed)
-
 }
 
 function bucket_runs(runs) {
@@ -161,8 +159,6 @@ function draw_it(data) {
 
     bucket_runs(run_data)
     update_ranges(all_runs)
-
-    console.log(all_runs.length)
     focused_runs = all_runs
     sub_runs = all_runs
 
@@ -182,15 +178,6 @@ function update(runs) {
 
 
 function data_viz(focused_runs) {
-    // Remove runs that fall outside our view
-    // sub_runs = get_runs_window(focused_runs)
-
-    
-    // // draw_weighted_avg(sub_runs)
-    // // if (selectedRuns.size){
-    // update_scales()
-    // update_axis()
-    // }
     if(focused_runs) {
         // update_ranges(focused_runs)
         bubble_data = bubble(focused_runs, calculate_bubble_thresh())
@@ -329,7 +316,7 @@ function canvas_viz() {
         .attr("transform", "translate("+(w-margin)+","+(h-h_e)+")")
         .call(y_axis_elevation)
 
-    update_axis()
+    // update_axis()
 
     /*
         Add run circle canvas

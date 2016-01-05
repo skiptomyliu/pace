@@ -1,18 +1,8 @@
 
-var u_w = 10
-
+var u_w = 12
+var h_m=100
 canvas_calendar()
 
-
-function Grid(run) {
-    this.distance_miles = run.distance_miles
-    this.start_date = run.run_time
-    this.tooltip_html = function() {
-        var date_time = (month[this.start_date.getMonth()])+" "+this.start_date.getDate() + " " + this.start_date.getFullYear()
-        return "<p>"+date_time+"</p> \
-                <p>"+this.distance_miles.toFixed(0)+"mi </p>"
-    }
-}
 
 function canvas_calendar(){
     var canvas = d3.select("#calendar_container")
@@ -34,39 +24,59 @@ function draw_calendar(runs) {
         k=0;
 
     var one_day = 1000*60*60*24*1
-
-    data = []
+    var data = []
+    var cur_bubble;
+    var br;
     while ( i < runs.length ) {
         var run = runs[i]
         if (run.run_time.toDateString() == cur_date.toDateString()) {
-            data.push(new Grid(run))
-            
+            br = new BubbledRuns()
+            br.addRun(run)
+            data.push(br)
             color = color_scale(run.distance_miles)
             cur_date = new Date(cur_date.getTime() - (one_day))
-
             i++;
         } else if (run.run_time > cur_date) { // Another date on same day, so let's catchup
             i++;
         } else {
+            br = new BubbledRuns()
+            br.name = "No run"
+            br.run_time = cur_date
+            br.run_time_end = cur_date
+            data.push(br)
+
             color = "grey"
             cur_date = new Date(cur_date.getTime() - (one_day))
         }
-
-        if(k%7==0) j++;
-
-        calendar_canvas.append("rect")
-            .style("stroke", "black")
-            .style("stroke-width", "1px")
-            .style("fill", color)
-            .attr("class", "calendar_unit")
-            .attr("width",u_w)
-            .attr("height",u_w)
-            .attr("y",(k%7)*u_w)
-            .attr("x",j*u_w)
-            .on("mouseover", highlight)
-            .on("mouseout", unhighlight)
-            k++;
     };
+
+    var svg = d3.select("#runsG") // redo this variable
+    var grects = calendar_canvas.selectAll("rect").data(data);
+
+
+    function translate_grid(d,i){
+        if(i%7==0){
+            j++;
+        };
+        return "translate("+((j)*u_w+h_m)+","+(((i%7)*u_w)+200)+")"
+    }
+
+    grects.enter()
+        .append("rect")
+        .style("stroke", "black")
+        .style("stroke-width", "1px")
+        .style("opacity", .75)
+        .attr("transform", translate_runs)
+        .attr("class", "calendar_rect")
+        .attr("width", u_w)
+        .attr("height",u_w)
+        .style("fill", function(d) { return color_scale(d.distance_miles) })
+        .on("mouseover", highlight)
+        .on("mouseout", unhighlight)
+
+    grects
+        .attr("transform", translate_grid)
+
 }
 
 
