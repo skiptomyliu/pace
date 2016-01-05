@@ -56,7 +56,6 @@ function draw_total_distance(runs) {
     };
 
     max_distance = distance_bins[distance_bins.length-1].distance_miles
-    console.log(max_distance)
 
     y_scale_distances = d3.scale.linear().domain([0,max_distance]).range([0, h])
     y_axis_distance = d3.svg.axis().scale(y_scale_distances).orient("left")

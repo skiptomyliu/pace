@@ -89,9 +89,6 @@ function zooming() {
             });
         }
     } else {
-        // var threshold = calculate_bubble_thresh()
-        // sub_runs = get_runs_window(focused_runs)
-        // update_ranges(sub_runs)
         d3.select("#xAxisG")
             .call(x_axis);
         
@@ -117,11 +114,9 @@ function zoomend(){
 
     // Add runs we have selected
     d3.selectAll('.selected').each(function(bubble,i){
-        console.log(bubble)
         bubble.runs.forEach(function(run){
             selectedRuns.add(run)
         })
-        
     });
     d3.selectAll('.selected').classed("selected", false);
 
