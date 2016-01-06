@@ -7,7 +7,7 @@ function BubbledRuns() {
     this.run_time_end
     this.runs = []
     this.name = ""
-    this.bubble_id = "b"+Math.ceil(Math.random()*100000000)
+    this.bubble_id = "b"+Math.ceil(Math.random()*1000000000)
     
     this.translate = []
     this.radius = 0
@@ -23,7 +23,7 @@ function BubbledRuns() {
         // else {
         //     this.run_time = avg_date(this.run_time, run.run_time)
         // }
-        if (this.run_time >= run.run_time)
+        if (this.run_time <= run.run_time)
             this.run_time = run.run_time
 
         this.average_min_per_mi = avg_pace(this.distance_miles, this.average_min_per_mi, 
