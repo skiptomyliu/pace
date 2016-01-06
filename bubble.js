@@ -8,6 +8,9 @@ function BubbledRuns() {
     this.runs = []
     this.name = ""
     this.bubble_id = "b"+Math.ceil(Math.random()*100000000)
+    
+    this.translate = []
+    this.radius = 0
 
     // We loop through runs in a reverse chronological order
     // run_time_end will usually be the first run

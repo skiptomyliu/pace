@@ -209,13 +209,20 @@ function calculate_bubble_thresh(domain){
 }
 
 function translate_runs(d,i){
+    console.log("running transitions")
+    if (d.translate.length) {
+        translate = "translate("+d.translate[0]+","+d.translate[1]+")"
+        d.translate = []
+        return translate
+    }
     return "translate("+x_scale(d.run_time)+","+y_scale(d.average_min_per_mi)+")"
 }
 
 function draw_bubbles(bubbles){ 
     var svg = d3.select("#runsG") // redo this variable
-    var gcircles = svg.selectAll("circle").data(bubbles, function(d){ return (d.run_time_end) });
-
+    // var gcircles = svg.selectAll("circle").data(bubbles, function(d){ return (d.run_time_end) });
+    var gcircles = svg.selectAll("circle").data(bubbles, function(d){ console.log(d.bubble_id); return (d.bubble_id) });
+    console.log(bubbles)
 
     gcircles.enter()
         .append("circle")
@@ -223,16 +230,38 @@ function draw_bubbles(bubbles){
         .style("stroke-width", "1px")
         .style("opacity", .75)
         .attr("transform", translate_runs)
-        .attr('r', 0)
+        .attr('r', 10)
         .on("mouseover", highlight)
         .on("mouseout", unhighlight)
+        .on("click", function(b,i) {
+            new_bubs = bubble(b.runs, .0000001)
+            var index;
+            for (index = 0; index < new_bubs.length; index++) {
+                new_bubs[index].translate = (d3.transform(d3.select(this).attr("transform"))).translate
+                new_bubs[index].radius = d3.select(this).attr("r")
+                console.log(d3.select(this).attr("r"))
+            }
+            draw_bubbles(new_bubs)
+        });
 
-    gcircles
+    gcircles.transition().duration(900)
         .attr("transform", translate_runs)
+        .style("fill", d3.rgb(200,100,50))
+        .each("end", doop)
 
-    gcircles.transition().duration(500)
-        .attr("r", function(d) { return radius_scale(d.distance_miles) })
-        .style("fill", function(d) { return color_scale(d.distance_miles) })
+    function doop() {
+        console.log("DOOP")
+        d3.select(this)
+            .transition().duration(900)
+                .attr("r", function(d) { return radius_scale(d.distance_miles) })
+                .attr("transform", translate_runs)
+                .style("fill", function(d) { return color_scale(d.distance_miles) })
+    }
+
+    // gcircles.transition().duration(500)
+    //     .attr("r", function(d) { return radius_scale(d.distance_miles) })
+    //     .attr("transform", translate_runs)
+    //     .style("fill", function(d) { return color_scale(d.distance_miles) })
 
     gcircles.exit()
         .transition().duration(500)
