@@ -232,6 +232,9 @@ function draw_bubbles(bubbles){
         .on("mouseover", highlight)
         .on("mouseout", unhighlight)
         .on("click", function(b,i) {
+            console.log(bubble_data.length)
+            bubble_data.splice(i, 1);
+            console.log("after splice: " + bubble_data.length)
             console.log(this)
             pop(b,this)
             // this.exit().remove()
@@ -244,7 +247,7 @@ function draw_bubbles(bubbles){
 
     function doop() {
         d3.select(this)
-            .transition().duration(400)
+            .transition().duration(700)
                 .attr("r", function(d) { return radius_scale(d.distance_miles) })
                 .attr("transform", translate_runs)
                 .style("fill", function(d) { return color_scale(d.distance_miles) })
@@ -267,6 +270,15 @@ function draw_bubbles(bubbles){
 
 }
 
+function merge(bubs) { 
+    var index;  
+    for (index = 0; index < bubs.length; index++) {
+        // bubs.runs
+        // new_bubs[index].translate = (d3.transform(d3.select(a).attr("transform"))).translate
+        // new_bubs[index].radius = d3.select(a).attr("r")
+    }
+}
+
 function pop(bub, a) {
     new_bubs = bubble(bub.runs, .0000001)
     console.log(new_bubs)
@@ -275,6 +287,7 @@ function pop(bub, a) {
         new_bubs[index].translate = (d3.transform(d3.select(a).attr("transform"))).translate
         new_bubs[index].radius = d3.select(a).attr("r")
     }
+    
     console.log("bubble length: " + bubble_data.length)
     bubble_data = bubble_data.concat(new_bubs)
     console.log("bubble length: " + bubble_data.length)
