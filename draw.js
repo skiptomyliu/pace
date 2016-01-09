@@ -34,6 +34,13 @@ function bubble(runs, days) {
         if (diff_days(ref_run.run_time, run.run_time) < days && ref_run != run) {
             br.addRun(run)
         } else {
+            var px = x_scale(br.run_time)
+            var py = y_scale(br.average_min_per_mi)  
+            br.runs.forEach(function(b) {
+                b.parent_x = px
+                b.parent_y = py
+            });
+
             br = new BubbledRuns()
             br.addRun(run)
             bubbles.push(br)
@@ -151,6 +158,8 @@ function draw_it(data) {
         el.run_time = new Date(el.start_date)
         el.average_min_per_mi = 26.8224/el.average_speed // Convert to min/mi
         el.distance_miles = m_to_mi(el.distance)
+        // el.parent_x = 0
+        // el.parent_y = 0
     });
 
     all_runs = all_runs.concat(run_data)
@@ -208,13 +217,16 @@ function calculate_bubble_thresh(domain){
 }
 
 function translate_runs(d,i){
-    // console.log("running transitions")
-    if (d.translate.length) {
-        translate = "translate("+d.translate[0]+","+d.translate[1]+")"
-        d.translate = []
-        return translate
-    }
+    // if (d.translate.length) {
+    //     translate = "translate("+d.translate[0]+","+d.translate[1]+")"
+    //     d.translate = []
+    //     return translate
+    // }
     return "translate("+x_scale(d.run_time)+","+y_scale(d.average_min_per_mi)+")"
+}
+
+function translate(bubble) {
+     return "translate("+x_scale(bubble.run_time)+","+y_scale(bubble.average_min_per_mi)+")"
 }
 
 function draw_bubbles(bubbles){ 
@@ -224,11 +236,6 @@ function draw_bubbles(bubbles){
 
     gcircles.enter()
         .append("circle")
-        .style("stroke", "black")
-        .style("stroke-width", "1px")
-        .style("opacity", .75)
-        .attr("transform", translate_runs)
-        .attr("r", 0)
         .on("mouseover", highlight)
         .on("mouseout", unhighlight)
         .on("click", function(b,i) {
@@ -237,36 +244,59 @@ function draw_bubbles(bubbles){
             console.log("after splice: " + bubble_data.length)
             console.log(this)
             pop(b,this)
-            // this.exit().remove()
-        });
+        })
+         // .delay((!gcircles.exit().empty() + !gcircles.enter().empty()) * 700)
+        // .transition().delay(700)
+        .style("stroke", "black")
+        .style("stroke-width", "1px")
+        .style("opacity", .75)
+        // .attr("transform", translate_runs)
+
+
+        .attr("transform", function(d) {
+            if (d.parent_x != 0) {
+                return "translate("+d.parent_x+","+d.parent_y+")"
+            } else {
+                console.log(d3.select(this).attr("transform"))
+                return d3.select(this).attr("transform")
+            }
+        })
+        .attr("r", 0)
+        
+        
 
     gcircles.transition()
-        // .attr("transform", translate_runs)
-        // .style("fill", d3.rgb(200,100,50))
-        .each("end", doop)
-
-    function doop() {
-        d3.select(this)
-            .transition().duration(700)
-                .attr("r", function(d) { return radius_scale(d.distance_miles) })
-                .attr("transform", translate_runs)
-                .style("fill", function(d) { return color_scale(d.distance_miles) })
-    }
+            .duration(700)
+            .delay(!gcircles.exit().empty() * 700)
+            .attr("r", function(d) { return radius_scale(d.distance_miles) })
+            .attr("transform", translate_runs)
+            .style("fill", function(d) { return color_scale(d.distance_miles) })
 
     // gcircles.transition().duration(500)
     //     .attr("r", function(d) { return radius_scale(d.distance_miles) })
     //     .attr("transform", translate_runs)
     //     .style("fill", function(d) { return color_scale(d.distance_miles) })
 
-    // gcircles.exit()
-    //     .transition().duration(300)
-    //     .attr('r', 0)
-    //     .each("end", destroy)
+    gcircles.exit()
+        .transition().duration(300)
+            .attr("transform", function(d){
+                console.log(d)
+                if (d.parent_x != 0) {
+                    return "translate("+d.parent_x+","+d.parent_y+")"
+                } else {
+                    console.log(d3.select(this).attr("transform"))
+                    return d3.select(this).attr("transform")
+                }
+            })
+            .attr("r", 0)
+        .each("end", destroy)
+            .remove();
 
-    // function destroy() {
-    //     d3.select(this).remove()
-    // }
-    gcircles.exit().remove()
+    function destroy() {
+        console.log("REMOVE")
+        d3.select(this).remove()
+    }
+    // gcircles.exit().remove()
 
 }
 
@@ -286,8 +316,10 @@ function pop(bub, a) {
     for (index = 0; index < new_bubs.length; index++) {
         new_bubs[index].translate = (d3.transform(d3.select(a).attr("transform"))).translate
         new_bubs[index].radius = d3.select(a).attr("r")
+        new_bubs[index].parent_x = (d3.transform(d3.select(a).attr("transform"))).translate[0]
+        new_bubs[index].parent_y = (d3.transform(d3.select(a).attr("transform"))).translate[1]
     }
-    
+
     console.log("bubble length: " + bubble_data.length)
     bubble_data = bubble_data.concat(new_bubs)
     console.log("bubble length: " + bubble_data.length)

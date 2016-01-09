@@ -9,6 +9,9 @@ function BubbledRuns() {
     this.name = ""
     this.bubble_id = "b"+Math.ceil(Math.random()*1000000000)
     
+    this.parent_x = 0
+    this.parent_y = 0
+
     this.translate = []
     this.radius = 0
 
@@ -32,6 +35,7 @@ function BubbledRuns() {
         this.total_elevation_gain += run.total_elevation_gain
         this.runs.push(run)
     }
+
 
     this.tooltip_html = function(){
         var name = ""
