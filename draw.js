@@ -192,12 +192,13 @@ function data_viz(focused_runs) {
     var gcircles = svg.selectAll("circle")[0]
 
     if (gcircles.length) {
-        console.log("pop" + gcircles.length)
         popped_runs = []
         gcircles.forEach(function(run) {
             popped_runs = popped_runs.concat(pop(run))
         });
-        draw_bubbles(popped_runs)
+        new_bubbled = bubble(popped_runs, calculate_bubble_thresh())
+        console.log("pop" + new_bubbled.length)
+        draw_bubbles(new_bubbled)
     } else {
         if(focused_runs) {
             // update_ranges(focused_runs)
@@ -263,7 +264,6 @@ function draw_bubbles(bubbles){
         })
          // 
          .attr("transform", function(d) {    
-            console.log(d)
             if (d.parent_x != 0) {
                 return "translate("+d.parent_x+","+d.parent_y+")"
             } else {
