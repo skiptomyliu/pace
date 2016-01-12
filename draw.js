@@ -28,7 +28,8 @@ function bubble(runs, days) {
     var bubbles = []
     var br = new BubbledRuns()
     var ref_run = runs[0]
-    var end_window_time = new Date(ref_run.run_time.getTime() - days * 86400000);
+    var one_day = 86400000
+    var end_window_time = new Date(ref_run.run_time.getTime() - days * one_day);
 
     runs.forEach(function(run){
         if (diff_days(ref_run.run_time, run.run_time) < days && ref_run != run) {
@@ -40,13 +41,15 @@ function bubble(runs, days) {
                 b.parent_x = px
                 b.parent_y = py
             });
+            br.parent_x = x_scale(br.run_time)
+            br.parent_y = y_scale(br.average_min_per_mi)
 
             br = new BubbledRuns()
             br.addRun(run)
             bubbles.push(br)
 
             ref_run = run
-            end_window_time = new Date(ref_run.run_time.getTime() - days * 86400000);
+            end_window_time = new Date(ref_run.run_time.getTime() - days * one_day);
         }
     });
     return bubbles
@@ -158,8 +161,6 @@ function draw_it(data) {
         el.run_time = new Date(el.start_date)
         el.average_min_per_mi = 26.8224/el.average_speed // Convert to min/mi
         el.distance_miles = m_to_mi(el.distance)
-        // el.parent_x = 0
-        // el.parent_y = 0
     });
 
     all_runs = all_runs.concat(run_data)
@@ -186,13 +187,27 @@ function update(runs) {
 
 
 function data_viz(focused_runs) {
-    if(focused_runs) {
-        // update_ranges(focused_runs)
-        bubble_data = bubble(focused_runs, calculate_bubble_thresh())
-        draw_bubbles(bubble_data)
-        draw_elevation_chart(bubble_data)
-        update_display_averages()
+
+    var svg = d3.select("#runsG") // redo this variable
+    var gcircles = svg.selectAll("circle")[0]
+
+    if (gcircles.length) {
+        console.log("pop" + gcircles.length)
+        popped_runs = []
+        gcircles.forEach(function(run) {
+            popped_runs = popped_runs.concat(pop(run))
+        });
+        draw_bubbles(popped_runs)
+    } else {
+        if(focused_runs) {
+            // update_ranges(focused_runs)
+            bubble_data = bubble(focused_runs, calculate_bubble_thresh())
+            draw_bubbles(bubble_data)
+            draw_elevation_chart(bubble_data)
+            update_display_averages()
+        }
     }
+
 }
 
 function get_runs_window(all_runs){
@@ -205,7 +220,7 @@ function get_runs_window(all_runs){
 }
 
 // Pop the bubbles after less than 500 
-function calculate_bubble_thresh(domain){
+function calculate_bubble_thresh(){
     var diff = diff_days(x_scale.domain()[0], x_scale.domain()[1])
     threshold = 3
     if (diff < 730)
@@ -232,7 +247,6 @@ function translate(bubble) {
 function draw_bubbles(bubbles){ 
     var svg = d3.select("#runsG") // redo this variable
     var gcircles = svg.selectAll("circle").data(bubbles, function(d){ return ( (d.run_time+d.run_time_end)) });
-    // var gcircles = svg.selectAll("circle").data(bubbles);
 
     gcircles.enter()
         .append("circle")
@@ -243,28 +257,28 @@ function draw_bubbles(bubbles){
             bubble_data.splice(i, 1);
             console.log("after splice: " + bubble_data.length)
             console.log(this)
-            pop(b,this)
+            popped_bubbles = pop(this)
+            bubble_data = bubble_data.concat(popped_bubbles)
+            draw_bubbles(bubble_data)
         })
-         // .delay((!gcircles.exit().empty() + !gcircles.enter().empty()) * 700)
-        // .transition().delay(700)
-        .style("stroke", "black")
-        .style("stroke-width", "1px")
-        .style("opacity", .75)
-        // .attr("transform", translate_runs)
-
-
-        .attr("transform", function(d) {
+         // 
+         .attr("transform", function(d) {    
+            console.log(d)
             if (d.parent_x != 0) {
                 return "translate("+d.parent_x+","+d.parent_y+")"
             } else {
-                console.log(d3.select(this).attr("transform"))
+                // console.log(d3.select(this).attr("transform"))
                 return d3.select(this).attr("transform")
             }
         })
-        .attr("r", 0)
+         .attr("r", 0)
+         .style("stroke", "black")
+        .style("stroke-width", "1px")
+        .style("opacity", .75)
+        .transition().delay((!gcircles.exit().empty() + !gcircles.enter().empty()) * 100)
         
         
-
+        
     gcircles.transition()
             .duration(700)
             .delay(!gcircles.exit().empty() * 700)
@@ -280,7 +294,6 @@ function draw_bubbles(bubbles){
     gcircles.exit()
         .transition().duration(300)
             .attr("transform", function(d){
-                console.log(d)
                 if (d.parent_x != 0) {
                     return "translate("+d.parent_x+","+d.parent_y+")"
                 } else {
@@ -296,34 +309,30 @@ function draw_bubbles(bubbles){
         console.log("REMOVE")
         d3.select(this).remove()
     }
-    // gcircles.exit().remove()
 
 }
 
-function merge(bubs) { 
-    var index;  
-    for (index = 0; index < bubs.length; index++) {
-        // bubs.runs
-        // new_bubs[index].translate = (d3.transform(d3.select(a).attr("transform"))).translate
-        // new_bubs[index].radius = d3.select(a).attr("r")
-    }
-}
+// function pop(a) {
+//     var new_bubs = bubble(a.runs, .0000001)
+//     var index;  
+//     for (index = 0; index < new_bubs.length; index++) {
+//         new_bubs[index].radius = d3.select(a).attr("r")
+//         new_bubs[index].parent_x = (d3.transform(d3.select(a).attr("transform"))).translate[0]
+//         new_bubs[index].parent_y = (d3.transform(d3.select(a).attr("transform"))).translate[1]
+//     }
+//     return new_bubs
+// }
 
-function pop(bub, a) {
-    new_bubs = bubble(bub.runs, .0000001)
-    console.log(new_bubs)
+function pop(a) {
+    var bub = d3.select(a).data()[0]
+    var new_bubs = bubble(bub.runs, .0000001)
     var index;  
     for (index = 0; index < new_bubs.length; index++) {
-        new_bubs[index].translate = (d3.transform(d3.select(a).attr("transform"))).translate
         new_bubs[index].radius = d3.select(a).attr("r")
         new_bubs[index].parent_x = (d3.transform(d3.select(a).attr("transform"))).translate[0]
         new_bubs[index].parent_y = (d3.transform(d3.select(a).attr("transform"))).translate[1]
     }
-
-    console.log("bubble length: " + bubble_data.length)
-    bubble_data = bubble_data.concat(new_bubs)
-    console.log("bubble length: " + bubble_data.length)
-    draw_bubbles(bubble_data)
+    return new_bubs
 }
 
 function translate_elevations(d,i){
