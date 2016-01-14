@@ -37,12 +37,15 @@ function bubble(runs, days) {
         } else {
             var px = x_scale(br.run_time)
             var py = y_scale(br.average_min_per_mi)  
-            br.runs.forEach(function(b) {
-                b.parent_x = px
-                b.parent_y = py
-            });
-            br.parent_x = x_scale(br.run_time)
-            br.parent_y = y_scale(br.average_min_per_mi)
+
+            br.start_x = px
+            br.start_y = py
+            // br.runs.forEach(function(b) {
+            //     b.parent_x = px
+            //     b.parent_y = py
+            // });
+            // br.parent_x = x_scale(br.run_time)
+            // br.parent_y = y_scale(br.average_min_per_mi)
 
             br = new BubbledRuns()
             br.addRun(run)
@@ -158,14 +161,16 @@ function draw_it(data) {
 
     // Add additional attributes to our run object
     run_data.forEach(function (el){
+        var br = new BubbledRuns()
         el.run_time = new Date(el.start_date)
         el.average_min_per_mi = 26.8224/el.average_speed // Convert to min/mi
         el.distance_miles = m_to_mi(el.distance)
+        br.addRun(el)
+        all_runs.push(br)
     });
 
-    all_runs = all_runs.concat(run_data)
+    // all_runs = all_runs.concat(run_data)
     // all_runs.sort(compare);
-
     bucket_runs(run_data)
     update_ranges(all_runs)
     focused_runs = all_runs
@@ -187,17 +192,24 @@ function update(runs) {
 
 
 function data_viz(focused_runs) {
-
     var svg = d3.select("#runsG") // redo this variable
     var gcircles = svg.selectAll("circle")[0]
 
     if (gcircles.length) {
-        popped_runs = []
+        console.log("in here")
+        var popped_runs = []
         gcircles.forEach(function(run) {
             popped_runs = popped_runs.concat(pop(run))
         });
-        new_bubbled = bubble(popped_runs, calculate_bubble_thresh())
-        console.log("pop" + new_bubbled.length)
+        // console.log(popped_runs.length)
+
+        //XXX: Left off here
+        
+        //Need to rethink the popping. Proposed:
+        //1.  Have popping set the parent xy only.
+        //2.  When bubbling we do not want to override the parent xy?  Before it was.
+        var new_bubbled = bubble(popped_runs, .0000000001)
+        // var new_bubbled = bubble(popped_runs, calculate_bubble_thresh())
         draw_bubbles(new_bubbled)
     } else {
         if(focused_runs) {
@@ -233,11 +245,6 @@ function calculate_bubble_thresh(){
 }
 
 function translate_runs(d,i){
-    // if (d.translate.length) {
-    //     translate = "translate("+d.translate[0]+","+d.translate[1]+")"
-    //     d.translate = []
-    //     return translate
-    // }
     return "translate("+x_scale(d.run_time)+","+y_scale(d.average_min_per_mi)+")"
 }
 
@@ -262,21 +269,20 @@ function draw_bubbles(bubbles){
             bubble_data = bubble_data.concat(popped_bubbles)
             draw_bubbles(bubble_data)
         })
-         // 
-         .attr("transform", function(d) {    
+        .attr("transform", function(d) {    
             if (d.parent_x != 0) {
                 return "translate("+d.parent_x+","+d.parent_y+")"
-            } else {
-                // console.log(d3.select(this).attr("transform"))
-                return d3.select(this).attr("transform")
-            }
+            } 
+            // else {
+            //     console.log(d3.select(this).attr("transform"))
+            //     return d3.select(this).attr("transform")
+            // }
         })
-         .attr("r", 0)
-         .style("stroke", "black")
+        .attr("r", 0)
+        .style("stroke", "black")
         .style("stroke-width", "1px")
         .style("opacity", .75)
-        .transition().delay((!gcircles.exit().empty() + !gcircles.enter().empty()) * 100)
-        
+        // .transition().delay((!gcircles.exit().empty() + !gcircles.enter().empty()) * 100)
         
         
     gcircles.transition()
@@ -285,11 +291,6 @@ function draw_bubbles(bubbles){
             .attr("r", function(d) { return radius_scale(d.distance_miles) })
             .attr("transform", translate_runs)
             .style("fill", function(d) { return color_scale(d.distance_miles) })
-
-    // gcircles.transition().duration(500)
-    //     .attr("r", function(d) { return radius_scale(d.distance_miles) })
-    //     .attr("transform", translate_runs)
-    //     .style("fill", function(d) { return color_scale(d.distance_miles) })
 
     gcircles.exit()
         .transition().duration(300)
@@ -312,20 +313,10 @@ function draw_bubbles(bubbles){
 
 }
 
-// function pop(a) {
-//     var new_bubs = bubble(a.runs, .0000001)
-//     var index;  
-//     for (index = 0; index < new_bubs.length; index++) {
-//         new_bubs[index].radius = d3.select(a).attr("r")
-//         new_bubs[index].parent_x = (d3.transform(d3.select(a).attr("transform"))).translate[0]
-//         new_bubs[index].parent_y = (d3.transform(d3.select(a).attr("transform"))).translate[1]
-//     }
-//     return new_bubs
-// }
 
 function pop(a) {
     var bub = d3.select(a).data()[0]
-    var new_bubs = bubble(bub.runs, .0000001)
+    var new_bubs = bub.runs
     var index;  
     for (index = 0; index < new_bubs.length; index++) {
         new_bubs[index].radius = d3.select(a).attr("r")

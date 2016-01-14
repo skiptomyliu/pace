@@ -12,7 +12,10 @@ function BubbledRuns() {
     this.parent_x = 0
     this.parent_y = 0
 
-    this.translate = []
+    this.start_x = 0
+    this.start_y = 0
+
+
     this.radius = 0
 
     // We loop through runs in a reverse chronological order

@@ -128,6 +128,9 @@ function zoomend(){
         update_scales()
         bucket_runs(sub_runs)
         update_axis()
-    } 
+    } else {
+        
+    }
+
     data_viz(focused_runs)
 }
