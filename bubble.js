@@ -9,12 +9,10 @@ function BubbledRuns() {
     this.name = ""
     this.bubble_id = "b"+Math.ceil(Math.random()*1000000000)
     
-    this.parent_x = 0
-    this.parent_y = 0
-
     this.start_x = 0
     this.start_y = 0
-
+    this.end_x = 0
+    this.end_y = 0
 
     this.radius = 0
 
