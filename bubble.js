@@ -37,7 +37,6 @@ function BubbledRuns() {
         this.runs.push(run)
     }
 
-
     this.tooltip_html = function(){
         var name = ""
         if(this.runs.length < 2){
@@ -62,4 +61,60 @@ function compare(a,b) {
   if (a.run_time > b.run_time)
     return -1;
   return 0;
+}
+
+BubbledRuns.bubble = function(bubbles, days) {
+    var merged_bubbles = []
+    if (bubbles.length){
+        var br = new BubbledRuns()
+        var ref_run = bubbles[0]
+        var one_day = 86400000
+        var end_window_time = new Date(ref_run.run_time.getTime() - days * one_day);
+
+        bubbles.forEach(function(run){
+            if (diff_days(ref_run.run_time, run.run_time) < days && ref_run != run) {
+                br.addRun(run)
+            } else {
+                // var px = x_scale(br.run_time)
+                // var py = y_scale(br.average_min_per_mi)  
+
+                // br.runs.forEach(function(b) {
+                //     b.end_x = px
+                //     b.end_y = py
+                // });
+                // br.start_x = px
+                // br.start_y = py
+                // console.log(br)
+
+                br = new BubbledRuns()
+                br.addRun(run)
+                merged_bubbles.push(br)
+
+                ref_run = run
+                end_window_time = new Date(ref_run.run_time.getTime() - days * one_day);
+            }
+        });
+    }
+    return merged_bubbles
+}
+
+//XXX:  Pop bubs if its under threshold, loop through bubs, pop, delete popped bub.
+//      return the values of the bubbles.
+//      bubbles values together only if it doesn't contain runs already?
+BubbledRuns.pop = function(bubbles, days) {
+    var runs = []
+    deleted_indexes = []
+    bubbles.forEach(function(bubble, i){
+        if(bubble.runs.length > 1) { 
+            if(diff_days(bubble.runs[0].run_time, bubble.runs[1].run_time) >= days){
+                runs = runs.concat(bubble.runs)
+                deleted_indexes.push(i)
+            }
+        }
+    });
+    // Loop in reverse order because splicing will mess up the indexing
+    for (var i=deleted_indexes.length-1; i>=0; i--){
+        bubbles.splice(deleted_indexes[i], 1);
+    }
+    return runs.sort(compare)
 }

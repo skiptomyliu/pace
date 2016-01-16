@@ -24,49 +24,54 @@ then store a subset of the viewed runs for new scaled view
 // Core function that clusters runs into a bubble.  Days is the threshold for bubbling runs
 // For example, if days = 2, any runs that fall within two days  
 // of each other will be bubbled together
-function bubble(bubbles, days) {
-    var merged_bubbles = []
-    var br = new BubbledRuns()
-    var ref_run = bubbles[0]
-    var one_day = 86400000
-    var end_window_time = new Date(ref_run.run_time.getTime() - days * one_day);
+// function bubble(bubbles, days) {
+//     var merged_bubbles = []
+//     var br = new BubbledRuns()
+//     var ref_run = bubbles[0]
+//     var one_day = 86400000
+//     var end_window_time = new Date(ref_run.run_time.getTime() - days * one_day);
 
-    bubbles.forEach(function(run){
-        if (diff_days(ref_run.run_time, run.run_time) < days && ref_run != run) {
-            br.addRun(run)
-        } else {
-            var px = x_scale(br.run_time)
-            var py = y_scale(br.average_min_per_mi)  
+//     bubbles.forEach(function(run){
+//         if (diff_days(ref_run.run_time, run.run_time) < days && ref_run != run) {
+//             br.addRun(run)
+//         } else {
+//             var px = x_scale(br.run_time)
+//             var py = y_scale(br.average_min_per_mi)  
 
-            br.runs.forEach(function(b) {
-                b.end_x = px
-                b.end_y = py
-            });
-            br.start_x = px
-            br.start_y = py
-            br = new BubbledRuns()
-            br.addRun(run)
-            merged_bubbles.push(br)
+//             br.runs.forEach(function(b) {
+//                 b.end_x = px
+//                 b.end_y = py
+//             });
+//             br.start_x = px
+//             br.start_y = py
+//             console.log(br)
+//             br = new BubbledRuns()
+//             br.addRun(run)
+//             merged_bubbles.push(br)
 
-            ref_run = run
-            end_window_time = new Date(ref_run.run_time.getTime() - days * one_day);
-        }
-    });
-    return merged_bubbles
-}
+//             ref_run = run
+//             end_window_time = new Date(ref_run.run_time.getTime() - days * one_day);
+//         }
+//     });
+//     return merged_bubbles
+// }
+
+//XXX:  Pop bubs if its under threshold, loop through bubs, pop, delete popped bub.
+//      return the values of the bubbles.
+//      bubbles values together only if it doesn't contain runs already?
 
 
-function pop(a) {
-    var bub = d3.select(a).data()[0]
-    var new_bubs = bub.runs
-    var index;  
-    for (index = 0; index < new_bubs.length; index++) {
-        // new_bubs[index].radius = d3.select(a).attr("r")
-        // new_bubs[index].parent_x = (d3.transform(d3.select(a).attr("transform"))).translate[0]
-        // new_bubs[index].parent_y = (d3.transform(d3.select(a).attr("transform"))).translate[1]
-    }
-    return new_bubs
-}
+// function pop(a) {
+//     var bub = d3.select(a).data()[0]
+//     var new_bubs = bub.runs
+//     var index;  
+//     for (index = 0; index < new_bubs.length; index++) {
+//         // new_bubs[index].radius = d3.select(a).attr("r")
+//         // new_bubs[index].parent_x = (d3.transform(d3.select(a).attr("transform"))).translate[0]
+//         // new_bubs[index].parent_y = (d3.transform(d3.select(a).attr("transform"))).translate[1]
+//     }
+//     return new_bubs
+// }
 
 var max_average_speed = 0
 var min_average_speed = 0
@@ -200,26 +205,25 @@ function update(runs) {
     update_axis()
 }
 
-
 function data_viz(focused_runs) {
     var svg = d3.select("#runsG") // redo this variable
     var gcircles = svg.selectAll("circle")[0]
 
     if (gcircles.length) {
-        
-        
-        var new_bubbled = bubble(bubble_data, calculate_bubble_thresh())
+        var popped = BubbledRuns.pop(bubble_data, .00001)
+
+        var new_bubbled = BubbledRuns.bubble(popped, .00001)
+
         draw_bubbles(new_bubbled)
     } else {
         if(focused_runs) {
             // update_ranges(focused_runs)
-            bubble_data = bubble(focused_runs, .000001)
+            bubble_data = BubbledRuns.bubble(focused_runs, 5)
             draw_bubbles(bubble_data)
             draw_elevation_chart(bubble_data)
             update_display_averages()
         }
     }
-
 }
 
 function get_runs_window(all_runs){
@@ -318,9 +322,6 @@ function draw_bubbles(bubbles){
 
 }
 
-
-
-
 function translate_elevations(d,i){
     return "translate("+x_scale(d.run_time)+","+(h-y_scale_elevation(max_elevation_gain_f-d.total_elevation_gain))+")"
 }
@@ -386,7 +387,6 @@ function canvas_viz() {
         .attr("class", "x axis")
         .attr("transform","translate(0,"+(h)+")")
         .call(x_axis)
-
 
     y_axis_elevation = d3.svg.axis().scale(y_scale_elevation).orient("right")
         .tickFormat(function(d){ return m_to_ft(d).toFixed(0)+" ft"})
