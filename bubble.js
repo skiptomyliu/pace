@@ -7,14 +7,13 @@ function BubbledRuns() {
     this.run_time_end
     this.runs = []
     this.name = ""
-    this.bubble_id = "b"+Math.ceil(Math.random()*1000000000)
     
-    this.start_x = 0
-    this.start_y = 0
-    this.end_x = 0
-    this.end_y = 0
+    this.start_bub
+    this.end_bub
 
     this.radius = 0
+
+    var _this = this;
 
     // We loop through runs in a reverse chronological order
     // run_time_end will usually be the first run
@@ -35,6 +34,13 @@ function BubbledRuns() {
         this.distance_miles += run.distance_miles
         this.total_elevation_gain += run.total_elevation_gain
         this.runs.push(run)
+    }
+
+    this.addBubble = function(bubble) {
+        bubble.runs.forEach(function(run){
+            _this.addRun(run)
+        })
+        this.runs.sort(compare)
     }
 
     this.tooltip_html = function(){
@@ -67,31 +73,25 @@ BubbledRuns.bubble = function(bubbles, days) {
     var merged_bubbles = []
     if (bubbles.length){
         var br = new BubbledRuns()
-        var ref_run = bubbles[0]
+        var ref_bub = bubbles[0]
         var one_day = 86400000
-        var end_window_time = new Date(ref_run.run_time.getTime() - days * one_day);
+        var end_window_time = new Date(ref_bub.run_time.getTime() - days * one_day);
 
-        bubbles.forEach(function(run){
-            if (diff_days(ref_run.run_time, run.run_time) < days && ref_run != run) {
-                br.addRun(run)
+        bubbles.forEach(function(bubble){
+            if (diff_days(ref_bub.run_time, bubble.run_time) < days && ref_bub != bubble) {
+                bubble.end_bub = br
+                br.addBubble(bubble)
             } else {
-                // var px = x_scale(br.run_time)
-                // var py = y_scale(br.average_min_per_mi)  
-
-                // br.runs.forEach(function(b) {
-                //     b.end_x = px
-                //     b.end_y = py
-                // });
-                // br.start_x = px
-                // br.start_y = py
-                // console.log(br)
-
                 br = new BubbledRuns()
-                br.addRun(run)
+                br.addBubble(bubble)
+                br.start_bub = br 
+                bubble.end_bub = br
+                console.log(bubble.end_bub)
+
                 merged_bubbles.push(br)
 
-                ref_run = run
-                end_window_time = new Date(ref_run.run_time.getTime() - days * one_day);
+                ref_bub = bubble
+                end_window_time = new Date(ref_bub.run_time.getTime() - days * one_day);
             }
         });
     }
@@ -102,19 +102,33 @@ BubbledRuns.bubble = function(bubbles, days) {
 //      return the values of the bubbles.
 //      bubbles values together only if it doesn't contain runs already?
 BubbledRuns.pop = function(bubbles, days) {
-    var runs = []
+    var one_bubbles = []
     deleted_indexes = []
     bubbles.forEach(function(bubble, i){
         if(bubble.runs.length > 1) { 
             if(diff_days(bubble.runs[0].run_time, bubble.runs[1].run_time) >= days){
-                runs = runs.concat(bubble.runs)
+                bubble.runs.forEach(function(run){
+                    var br = new BubbledRuns()
+                    br.addRun(run)
+                    br.start_bub = bubble
+                    one_bubbles.push(br)
+                });
                 deleted_indexes.push(i)
             }
         }
     });
     // Loop in reverse order because splicing will mess up the indexing
     for (var i=deleted_indexes.length-1; i>=0; i--){
-        bubbles.splice(deleted_indexes[i], 1);
+        bubbles[i].end_bub = bubbles[i]
+        bubbles.splice(deleted_indexes[i], 1); //probably not needed?
     }
-    return runs.sort(compare)
+    one_bubbles.sort(compare)
+    console.log(one_bubbles[0].start_bub)
+    return one_bubbles
 }
+
+BubbledRuns.combine = function(bubble1, bubble2) {
+    bubble1 = bubble1.concat(bubble2)
+    return bubble1.sort(compare)
+}
+

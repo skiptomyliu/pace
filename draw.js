@@ -21,58 +21,6 @@ then store a subset of the viewed runs for new scaled view
 
 */
 
-// Core function that clusters runs into a bubble.  Days is the threshold for bubbling runs
-// For example, if days = 2, any runs that fall within two days  
-// of each other will be bubbled together
-// function bubble(bubbles, days) {
-//     var merged_bubbles = []
-//     var br = new BubbledRuns()
-//     var ref_run = bubbles[0]
-//     var one_day = 86400000
-//     var end_window_time = new Date(ref_run.run_time.getTime() - days * one_day);
-
-//     bubbles.forEach(function(run){
-//         if (diff_days(ref_run.run_time, run.run_time) < days && ref_run != run) {
-//             br.addRun(run)
-//         } else {
-//             var px = x_scale(br.run_time)
-//             var py = y_scale(br.average_min_per_mi)  
-
-//             br.runs.forEach(function(b) {
-//                 b.end_x = px
-//                 b.end_y = py
-//             });
-//             br.start_x = px
-//             br.start_y = py
-//             console.log(br)
-//             br = new BubbledRuns()
-//             br.addRun(run)
-//             merged_bubbles.push(br)
-
-//             ref_run = run
-//             end_window_time = new Date(ref_run.run_time.getTime() - days * one_day);
-//         }
-//     });
-//     return merged_bubbles
-// }
-
-//XXX:  Pop bubs if its under threshold, loop through bubs, pop, delete popped bub.
-//      return the values of the bubbles.
-//      bubbles values together only if it doesn't contain runs already?
-
-
-// function pop(a) {
-//     var bub = d3.select(a).data()[0]
-//     var new_bubs = bub.runs
-//     var index;  
-//     for (index = 0; index < new_bubs.length; index++) {
-//         // new_bubs[index].radius = d3.select(a).attr("r")
-//         // new_bubs[index].parent_x = (d3.transform(d3.select(a).attr("transform"))).translate[0]
-//         // new_bubs[index].parent_y = (d3.transform(d3.select(a).attr("transform"))).translate[1]
-//     }
-//     return new_bubs
-// }
-
 var max_average_speed = 0
 var min_average_speed = 0
 var average_speed = 0
@@ -176,12 +124,12 @@ function draw_it(data) {
 
     // Add additional attributes to our run object
     run_data.forEach(function (el){
-        // var br = new BubbledRuns()
         el.run_time = new Date(el.start_date)
         el.average_min_per_mi = 26.8224/el.average_speed // Convert to min/mi
         el.distance_miles = m_to_mi(el.distance)
-        // br.addRun(el)
-        all_runs.push(el)
+        var br = new BubbledRuns()
+        br.addRun(el)
+        all_runs.push(br)
     });
 
     // all_runs = all_runs.concat(run_data)
@@ -211,9 +159,9 @@ function data_viz(focused_runs) {
 
     if (gcircles.length) {
         var popped = BubbledRuns.pop(bubble_data, .00001)
-
         var new_bubbled = BubbledRuns.bubble(popped, .00001)
 
+        // var new_bubbled = BubbledRuns.bubble(bubble_data, 8)
         draw_bubbles(new_bubbled)
     } else {
         if(focused_runs) {
@@ -270,15 +218,14 @@ function draw_bubbles(bubbles){
         .on("click", function(b,i) {
             console.log(bubble_data.length)
             bubble_data.splice(i, 1);
-            console.log("after splice: " + bubble_data.length)
-            console.log(this)
             popped_bubbles = pop(this)
             bubble_data = bubble_data.concat(popped_bubbles)
             draw_bubbles(bubble_data)
         })
         .attr("transform", function(d) {    
-            if (d.start_x != 0) {
-                return "translate("+d.start_x+","+d.start_y+")"
+            // console.log(d.start_bub)
+            if (d.start_bub) {
+                return translate(d.start_bub)
             } 
             // else {
                 // console.log(d3.select(this).attr("transform"))
@@ -304,9 +251,9 @@ function draw_bubbles(bubbles){
     gcircles.exit()
         .transition().duration(1500)
             .attr("transform", function(d){
-                if (d.end_x > 0) {
+                if (d.end_bub) {
                     console.log("ending")
-                    return "translate("+d.end_x+","+d.end_y+")"
+                    return translate(d.end_bub)
                 } else {
                     console.log("stay diffuse")
                     return d3.select(this).attr("transform")
