@@ -7,43 +7,8 @@ var pace_margin = .10; //+-6 seconds on chart
 
 // 4 buckets
 var all_runs = [];      // all runs, this will never change
-var focused_runs;       // saved bucket of runs that the user has selected, becomes all_runs
-var sub_runs;           // used for calculations based on focused_runs
-var selected_runs;      // runs selected by user, short lived on each shift+click
-var bubble_data;    
-var draw_avg = false
-
-
-/*  
-
-Store all runs, 
-then store a subset of the viewed runs for new scaled view
-
-*/
-
-// Core function that clusters runs into a bubble.  Days is the threshold for bubbling runs
-// For example, if days = 2, any runs that fall within two days  
-// of each other will be bubbled together
-function bubble(runs, days) {
-    var bubbles = []
-    var br = new BubbledRuns()
-    var ref_run = runs[0]
-    var end_window_time = new Date(ref_run.run_time.getTime() - days * 86400000);
-
-    runs.forEach(function(run){
-        if (diff_days(ref_run.run_time, run.run_time) < days && ref_run != run) {
-            br.addRun(run)
-        } else {
-            br = new BubbledRuns()
-            br.addRun(run)
-            bubbles.push(br)
-
-            ref_run = run
-            end_window_time = new Date(ref_run.run_time.getTime() - days * 86400000);
-        }
-    });
-    return bubbles
-}
+var bubble_data = [];        //
+var TRANSITION_DURATION = 500
 
 var max_average_speed = 0
 var min_average_speed = 0
@@ -98,27 +63,27 @@ function update_ranges(run_data){
 }
 
 function bucket_runs(runs) {
+    runs_5k = runs.filter(function (data){
+        return data.distance >= 4988 && data.distance <= 5150; // 3.1 to 3.2
+    });
+
     runs_10k = runs.filter(function (data){
         return data.distance >= 9900 && data.distance <= 10150; // 6.1 to 6.3
     });
 
-    runs_5k = runs.filter(function (data){
-        return data.distance >= 4900 && data.distance <= 5150; // 6.1 to 6.3
-    });
-
     runs_hm = runs.filter(function (data){
-        return data.distance >= 20997.5 && data.distance <= 21247.5; // 6.1 to 6.3
+        return data.distance >= 20997.5 && data.distance <= 21404; // 13.04 to 13.
     });
 
     runs_mar = runs.filter(function (data){
-        return data.distance >= 42003.88 && data.distance <= 43452.3; // 6.1 to 6.3
+        return data.distance >= 42003.88 && data.distance <= 43452.3; // 26.1 to 27
     });
 
-    fastest_10k = d3.min(runs_10k, function(run){
+    fastest_5k = d3.min(runs_5k, function(run){
         return run.average_min_per_mi
     })
 
-    fastest_5k = d3.min(runs_5k, function(run){
+    fastest_10k = d3.min(runs_10k, function(run){
         return run.average_min_per_mi
     })
 
@@ -142,7 +107,6 @@ function handle_queue(error, data){
 }
 
 function draw_it(data) {
-
     var run_data = data.filter(function (data){
         return data.type == "Run" && data.average_speed > 2.2352 //12 min / mi;
     });
@@ -152,17 +116,17 @@ function draw_it(data) {
         el.run_time = new Date(el.start_date)
         el.average_min_per_mi = 26.8224/el.average_speed // Convert to min/mi
         el.distance_miles = m_to_mi(el.distance)
+        all_runs.push(el)
+        var br = new BubbledRuns()
+        br.addRun(el)
+        bubble_data.push(br)
     });
-
-    all_runs = all_runs.concat(run_data)
-    all_runs.sort(compare);
-
-    bucket_runs(run_data)
+    // all_runs = all_runs.concat(run_data)
+    // all_runs.sort(compare);
+    bucket_runs(all_runs)
     update_ranges(all_runs)
-    focused_runs = all_runs
-    sub_runs = all_runs
 
-    update(focused_runs)
+    update(all_runs)
     data_viz(all_runs)
     draw_calendar(all_runs)
     draw_total_distance(all_runs)
@@ -176,15 +140,14 @@ function update(runs) {
     update_axis()
 }
 
-
 function data_viz(focused_runs) {
-    if(focused_runs) {
-        // update_ranges(focused_runs)
-        bubble_data = bubble(focused_runs, calculate_bubble_thresh())
-        draw_bubbles(bubble_data)
-        draw_elevation_chart(bubble_data)
-        update_display_averages()
-    }
+    var popped = BubbledRuns.pop(bubble_data, calculate_bubble_thresh())
+    var new_bubbled = BubbledRuns.bubble(popped, calculate_bubble_thresh())
+    bubble_data = BubbledRuns.combine(bubble_data, new_bubbled)
+    bubble_data = BubbledRuns.bubble(bubble_data, calculate_bubble_thresh())
+    draw_bubbles(bubble_data)
+    draw_elevation_chart(bubble_data)
+    update_display_averages()
 }
 
 function get_runs_window(all_runs){
@@ -197,14 +160,20 @@ function get_runs_window(all_runs){
 }
 
 // Pop the bubbles after less than 500 
-function calculate_bubble_thresh(domain){
+function calculate_bubble_thresh(){
     var diff = diff_days(x_scale.domain()[0], x_scale.domain()[1])
-    threshold = 3
+    threshold = 14
+    // if (diff < 9.1)
+    //     threshold = 14
+    // if (diff < 8.99)
+    //     threshold = .0000001
+
+    threshold = 7
     if (diff < 730)
-        threshold = 2
-    if (diff < 456)
+        // threshold = 5
+    // if (diff < 456)
         threshold = .0001
-    
+
     return threshold
 }
 
@@ -212,32 +181,61 @@ function translate_runs(d,i){
     return "translate("+x_scale(d.run_time)+","+y_scale(d.average_min_per_mi)+")"
 }
 
+function translate(bubble) {
+     return "translate("+x_scale(bubble.run_time)+","+y_scale(bubble.average_min_per_mi)+")"
+}
+
 function draw_bubbles(bubbles){ 
     var svg = d3.select("#runsG") // redo this variable
-    var gcircles = svg.selectAll("circle").data(bubbles, function(d){ return (d.run_time_end) });
-
+    var gcircles = svg.selectAll("circle").data(bubbles, function(d){ return ( (d.run_time+d.run_time_end)) });
 
     gcircles.enter()
         .append("circle")
+        .on("mouseover", highlight)
+        .on("mouseout", unhighlight)
+        .on("click", function(b,i) {
+            // console.log(b)
+            // console.log(BubbledRuns.pop(b))
+            // bubble_data = bubble_data.concat(popped_bubbles)
+            // draw_bubbles(bubble_data)
+        })
+        .attr("transform", function(d) {    
+            if (d.start_bub) {
+                return translate(d.start_bub)
+            } else {
+                console.log("NOOO")
+            }
+        })
+        // .attr("transform", translate_runs)
+        .attr("r", 0)
         .style("stroke", "black")
         .style("stroke-width", "1px")
         .style("opacity", .75)
-        .attr("transform", translate_runs)
-        .attr('r', 0)
-        .on("mouseover", highlight)
-        .on("mouseout", unhighlight)
-
-    gcircles
-        .attr("transform", translate_runs)
-
-    gcircles.transition().duration(500)
-        .attr("r", function(d) { return radius_scale(d.distance_miles) })
-        .style("fill", function(d) { return color_scale(d.distance_miles) })
+        
+        
+    gcircles.transition()
+            .duration(TRANSITION_DURATION)
+            .attr("r", function(d) { return radius_scale(d.distance_miles) })
+            .attr("transform", translate_runs)
+            .style("fill", function(d) { return color_scale(d.distance_miles) })
 
     gcircles.exit()
-        .transition().duration(500)
-        .attr('r', 0)
-        .remove(); 
+        .transition().duration(TRANSITION_DURATION)
+            .attr("transform", function(d){
+                if (d.end_bub) {
+                    return translate(d.end_bub)
+                } else {
+                    console.log("stay diffuse")
+                    return d3.select(this).attr("transform")
+                }
+            })
+            .attr("r", 0)
+        .each("end", destroy)
+
+    function destroy() {
+        console.log("REMOVE")
+        d3.select(this).remove()
+    }
 }
 
 function translate_elevations(d,i){
@@ -305,7 +303,6 @@ function canvas_viz() {
         .attr("class", "x axis")
         .attr("transform","translate(0,"+(h)+")")
         .call(x_axis)
-
 
     y_axis_elevation = d3.svg.axis().scale(y_scale_elevation).orient("right")
         .tickFormat(function(d){ return m_to_ft(d).toFixed(0)+" ft"})
