@@ -7,19 +7,8 @@ var pace_margin = .10; //+-6 seconds on chart
 
 // 4 buckets
 var all_runs = [];      // all runs, this will never change
-var focused_runs;       // saved bucket of runs that the user has selected, becomes all_runs
-var sub_runs;           // used for calculations based on focused_runs
-var selected_runs;      // runs selected by user, short lived on each shift+click
-var bubble_data;        //
-var draw_avg = false
-
-
-/*  
-
-Store all runs, 
-then store a subset of the viewed runs for new scaled view
-
-*/
+var bubble_data = [];        //
+var TRANSITION_DURATION = 500
 
 var max_average_speed = 0
 var min_average_speed = 0
@@ -74,27 +63,27 @@ function update_ranges(run_data){
 }
 
 function bucket_runs(runs) {
+    runs_5k = runs.filter(function (data){
+        return data.distance >= 4988 && data.distance <= 5150; // 3.1 to 3.2
+    });
+
     runs_10k = runs.filter(function (data){
         return data.distance >= 9900 && data.distance <= 10150; // 6.1 to 6.3
     });
 
-    runs_5k = runs.filter(function (data){
-        return data.distance >= 4900 && data.distance <= 5150; // 6.1 to 6.3
-    });
-
     runs_hm = runs.filter(function (data){
-        return data.distance >= 20997.5 && data.distance <= 21247.5; // 6.1 to 6.3
+        return data.distance >= 20997.5 && data.distance <= 21404; // 13.04 to 13.
     });
 
     runs_mar = runs.filter(function (data){
-        return data.distance >= 42003.88 && data.distance <= 43452.3; // 6.1 to 6.3
+        return data.distance >= 42003.88 && data.distance <= 43452.3; // 26.1 to 27
     });
 
-    fastest_10k = d3.min(runs_10k, function(run){
+    fastest_5k = d3.min(runs_5k, function(run){
         return run.average_min_per_mi
     })
 
-    fastest_5k = d3.min(runs_5k, function(run){
+    fastest_10k = d3.min(runs_10k, function(run){
         return run.average_min_per_mi
     })
 
@@ -127,19 +116,17 @@ function draw_it(data) {
         el.run_time = new Date(el.start_date)
         el.average_min_per_mi = 26.8224/el.average_speed // Convert to min/mi
         el.distance_miles = m_to_mi(el.distance)
+        all_runs.push(el)
         var br = new BubbledRuns()
         br.addRun(el)
-        all_runs.push(br)
+        bubble_data.push(br)
     });
-
     // all_runs = all_runs.concat(run_data)
     // all_runs.sort(compare);
-    bucket_runs(run_data)
+    bucket_runs(all_runs)
     update_ranges(all_runs)
-    focused_runs = all_runs
-    sub_runs = all_runs
 
-    update(focused_runs)
+    update(all_runs)
     data_viz(all_runs)
     draw_calendar(all_runs)
     draw_total_distance(all_runs)
@@ -154,27 +141,13 @@ function update(runs) {
 }
 
 function data_viz(focused_runs) {
-    var svg = d3.select("#runsG") // redo this variable
-    var gcircles = svg.selectAll("circle")[0]
-
-    if (gcircles.length) {
-        var popped = BubbledRuns.pop(bubble_data, .000001)
-        var new_bubbled = BubbledRuns.bubble(popped, .000001)
-        bubble_data = BubbledRuns.combine(bubble_data, new_bubbled)
-
-        //XXX  Figure out how to set start_bub, end_bub without conflicting pop and bubble
-        // do we need to set a flag of some sort to determine when zoom and when zoom in?
-        // bubble_data = BubbledRuns.bubble(bubble_data, 2)
-        draw_bubbles(bubble_data)
-    } else {
-        if(focused_runs) {
-            // update_ranges(focused_runs)
-            bubble_data = BubbledRuns.bubble(focused_runs, 5)
-            draw_bubbles(bubble_data)
-            draw_elevation_chart(bubble_data)
-            update_display_averages()
-        }
-    }
+    var popped = BubbledRuns.pop(bubble_data, calculate_bubble_thresh())
+    var new_bubbled = BubbledRuns.bubble(popped, calculate_bubble_thresh())
+    bubble_data = BubbledRuns.combine(bubble_data, new_bubbled)
+    bubble_data = BubbledRuns.bubble(bubble_data, calculate_bubble_thresh())
+    draw_bubbles(bubble_data)
+    draw_elevation_chart(bubble_data)
+    update_display_averages()
 }
 
 function get_runs_window(all_runs){
@@ -189,16 +162,18 @@ function get_runs_window(all_runs){
 // Pop the bubbles after less than 500 
 function calculate_bubble_thresh(){
     var diff = diff_days(x_scale.domain()[0], x_scale.domain()[1])
-    // threshold = 3
-    // if (diff < 730)
-    //     threshold = 2
-    // if (diff < 456)
-    //     threshold = .0001
+    threshold = 14
+    // if (diff < 9.1)
+    //     threshold = 14
+    // if (diff < 8.99)
+    //     threshold = .0000001
 
-    threshold = 5
+    threshold = 7
     if (diff < 730)
-        threshold = .0000001
-    
+        // threshold = 5
+    // if (diff < 456)
+        threshold = .0001
+
     return threshold
 }
 
@@ -219,17 +194,16 @@ function draw_bubbles(bubbles){
         .on("mouseover", highlight)
         .on("mouseout", unhighlight)
         .on("click", function(b,i) {
-            console.log(bubble_data.length)
-            bubble_data.splice(i, 1);
-            popped_bubbles = pop(this)
-            bubble_data = bubble_data.concat(popped_bubbles)
-            draw_bubbles(bubble_data)
+            // console.log(b)
+            // console.log(BubbledRuns.pop(b))
+            // bubble_data = bubble_data.concat(popped_bubbles)
+            // draw_bubbles(bubble_data)
         })
         .attr("transform", function(d) {    
-            // console.log(d.start_bub)
             if (d.start_bub) {
-                // console.log(d.start_bub)
                 return translate(d.start_bub)
+            } else {
+                console.log("NOOO")
             }
         })
         // .attr("transform", translate_runs)
@@ -237,21 +211,18 @@ function draw_bubbles(bubbles){
         .style("stroke", "black")
         .style("stroke-width", "1px")
         .style("opacity", .75)
-        // .transition().delay((!gcircles.exit().empty() + !gcircles.enter().empty()) * 100)
         
         
     gcircles.transition()
-            .duration(900)
-            // .delay(!gcircles.exit().empty() * 700)
+            .duration(TRANSITION_DURATION)
             .attr("r", function(d) { return radius_scale(d.distance_miles) })
             .attr("transform", translate_runs)
             .style("fill", function(d) { return color_scale(d.distance_miles) })
 
     gcircles.exit()
-        .transition().duration(1500)
+        .transition().duration(TRANSITION_DURATION)
             .attr("transform", function(d){
                 if (d.end_bub) {
-                    console.log("ending")
                     return translate(d.end_bub)
                 } else {
                     console.log("stay diffuse")
@@ -265,7 +236,6 @@ function draw_bubbles(bubbles){
         console.log("REMOVE")
         d3.select(this).remove()
     }
-
 }
 
 function translate_elevations(d,i){
@@ -302,7 +272,7 @@ function canvas_viz() {
     zoom = d3.behavior.zoom()
         .scaleExtent([1, Infinity])
         .x(x_scale)
-        // .on("zoomstart",    zoomstart)
+        .on("zoomstart",    zoomstart)
         .on("zoom",         zooming)
         .on("zoomend",      zoomend)
 

@@ -38,6 +38,10 @@ d3.json("content3.json",
             var popped_bubbles = BubbledRuns.pop(bubbles, .00000001);
             assert.ok(popped_bubbles.length == 8, 'Length of runs from popped bubbles')
             assert.ok(bubbles.length == 2, 'Length after bubbles removed')
+
+            var bubbles = BubbledRuns.bubble(all_runs, 14)
+            var popped_bubbles = BubbledRuns.pop(bubbles, 3);
+            assert.ok(popped_bubbles.length == 9, 'Length after popping with 3 days threshold')
         });
 
         QUnit.test("pop start/end test", function(assert) {
