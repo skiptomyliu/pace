@@ -158,11 +158,14 @@ function data_viz(focused_runs) {
     var gcircles = svg.selectAll("circle")[0]
 
     if (gcircles.length) {
-        var popped = BubbledRuns.pop(bubble_data, .00001)
-        var new_bubbled = BubbledRuns.bubble(popped, .00001)
+        var popped = BubbledRuns.pop(bubble_data, .000001)
+        var new_bubbled = BubbledRuns.bubble(popped, .000001)
+        bubble_data = BubbledRuns.combine(bubble_data, new_bubbled)
 
-        // var new_bubbled = BubbledRuns.bubble(bubble_data, 8)
-        draw_bubbles(new_bubbled)
+        //XXX  Figure out how to set start_bub, end_bub without conflicting pop and bubble
+        // do we need to set a flag of some sort to determine when zoom and when zoom in?
+        // bubble_data = BubbledRuns.bubble(bubble_data, 2)
+        draw_bubbles(bubble_data)
     } else {
         if(focused_runs) {
             // update_ranges(focused_runs)
@@ -225,15 +228,11 @@ function draw_bubbles(bubbles){
         .attr("transform", function(d) {    
             // console.log(d.start_bub)
             if (d.start_bub) {
+                // console.log(d.start_bub)
                 return translate(d.start_bub)
-            } 
-            // else {
-                // console.log(d3.select(this).attr("transform"))
-                // return d3.select(this).attr("transform")
-            // }
+            }
         })
         // .attr("transform", translate_runs)
-
         .attr("r", 0)
         .style("stroke", "black")
         .style("stroke-width", "1px")

@@ -26,8 +26,9 @@ function BubbledRuns() {
         // else {
         //     this.run_time = avg_date(this.run_time, run.run_time)
         // }
-        if (this.run_time <= run.run_time)
+        if (this.run_time <= run.run_time) {
             this.run_time = run.run_time
+        }
 
         this.average_min_per_mi = avg_pace(this.distance_miles, this.average_min_per_mi, 
             run.distance_miles, run.average_min_per_mi)
@@ -77,17 +78,24 @@ BubbledRuns.bubble = function(bubbles, days) {
         var one_day = 86400000
         var end_window_time = new Date(ref_bub.run_time.getTime() - days * one_day);
 
+
         bubbles.forEach(function(bubble){
+            // debugger;
             if (diff_days(ref_bub.run_time, bubble.run_time) < days && ref_bub != bubble) {
                 bubble.end_bub = br
                 br.addBubble(bubble)
+                // br.start_bub = bubble
             } else {
                 br = new BubbledRuns()
                 br.addBubble(bubble)
-                br.start_bub = br 
+                
+                // console.log(bubble.start_bub)
+                if (bubble.start_bub) {
+                    br.start_bub = bubble.start_bub
+                } else {
+                    br.start_bub = br 
+                }
                 bubble.end_bub = br
-                console.log(bubble.end_bub)
-
                 merged_bubbles.push(br)
 
                 ref_bub = bubble
@@ -106,8 +114,8 @@ BubbledRuns.pop = function(bubbles, days) {
     deleted_indexes = []
     bubbles.forEach(function(bubble, i){
         if(bubble.runs.length > 1) { 
-            if(diff_days(bubble.runs[0].run_time, bubble.runs[1].run_time) >= days){
-                bubble.runs.forEach(function(run){
+            if(diff_days(bubble.runs[0].run_time, bubble.runs[1].run_time) >= days) {
+                bubble.runs.forEach(function(run) {
                     var br = new BubbledRuns()
                     br.addRun(run)
                     br.start_bub = bubble
@@ -115,15 +123,15 @@ BubbledRuns.pop = function(bubbles, days) {
                 });
                 deleted_indexes.push(i)
             }
-        }
+        } 
     });
     // Loop in reverse order because splicing will mess up the indexing
-    for (var i=deleted_indexes.length-1; i>=0; i--){
+    for (var i=deleted_indexes.length-1; i>=0; i--) {
         bubbles[i].end_bub = bubbles[i]
-        bubbles.splice(deleted_indexes[i], 1); //probably not needed?
+        bubbles.splice(deleted_indexes[i], 1); 
     }
     one_bubbles.sort(compare)
-    console.log(one_bubbles[0].start_bub)
+    // console.log(one_bubbles[0].start_bub)
     return one_bubbles
 }
 

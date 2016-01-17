@@ -71,6 +71,29 @@ d3.json("content3.json",
             assert.ok(bubbles.length == 5, "success");
         });
 
+        QUnit.test("pop 2x test", function(assert) {
+            var bubbles = BubbledRuns.bubble(all_runs, 3)
+            var popped_bubbles = BubbledRuns.pop(bubbles, .00000001);
+            var popped_bubbles2 = BubbledRuns.pop(popped_bubbles, .00000001);
+            var bubbles = BubbledRuns.combine(popped_bubbles, popped_bubbles2)
+            console.log(bubbles)
+            assert.ok(bubbles.length == 8, "success");
+        });
+
+        // QUnit.test("start_bub merge test", function(assert) {
+        //     var bubbles = BubbledRuns.bubble(all_runs, 3)
+        //     bubbles = BubbledRuns.bubble(bubbles, 3)
+        //     console.log(bubbles)
+        //     assert.ok(bubbles.length == 5, "success");
+        // });
+
+        // QUnit.test("start_bub merge after bub test", function(assert) {
+        //     var bubbles = BubbledRuns.bubble(all_runs, 3)
+        //     bubbles = BubbledRuns.bubble(bubbles, 3)
+        //     console.log(bubbles)
+        //     assert.ok(bubbles.length == 5, "success");
+        // });
+
         // QUnit.test("merge 2x test", function(assert) {
         //     var bubbles = BubbledRuns.bubble(all_runs, 3)
         //     bubbles = BubbledRuns.bubble(bubbles, 3)
