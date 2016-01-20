@@ -7,8 +7,8 @@ var pace_margin = .10; //+-6 seconds on chart
 
 // 4 buckets
 var all_runs = [];      // all runs, this will never change
-var bubble_data = [];        //
-var TRANSITION_DURATION = 500
+var bubble_data = [];        
+var TRANSITION_DURATION = 800
 
 var max_average_speed = 0
 var min_average_speed = 0
@@ -162,16 +162,8 @@ function get_runs_window(all_runs){
 // Pop the bubbles after less than 500 
 function calculate_bubble_thresh(){
     var diff = diff_days(x_scale.domain()[0], x_scale.domain()[1])
-    threshold = 14
-    // if (diff < 9.1)
-    //     threshold = 14
-    // if (diff < 8.99)
-    //     threshold = .0000001
-
-    threshold = 7
+    threshold = 5
     if (diff < 730)
-        // threshold = 5
-    // if (diff < 456)
         threshold = .0001
 
     return threshold
@@ -194,10 +186,9 @@ function draw_bubbles(bubbles){
         .on("mouseover", highlight)
         .on("mouseout", unhighlight)
         .on("click", function(b,i) {
-            // console.log(b)
-            // console.log(BubbledRuns.pop(b))
-            // bubble_data = bubble_data.concat(popped_bubbles)
-            // draw_bubbles(bubble_data)
+            var popped_bubbles = BubbledRuns.pop_index(bubble_data, i)
+            bubble_data = bubble_data.concat(popped_bubbles)
+            draw_bubbles(bubble_data)
         })
         .attr("transform", function(d) {    
             if (d.start_bub) {
@@ -233,7 +224,6 @@ function draw_bubbles(bubbles){
         .each("end", destroy)
 
     function destroy() {
-        console.log("REMOVE")
         d3.select(this).remove()
     }
 }
@@ -323,14 +313,6 @@ function canvas_viz() {
 
     canvas.append("g")
         .attr("id", "elevationG")
-
-    var gpath = d3.select("svg g")
-        .append("path")
-        .attr("id", "weightedLine")
-        // .attr("d", weightedLine(weighted_bins))
-        .attr("fill", "none")
-        .attr("stroke", "blue")
-        .attr("stroke-width", 2);
 }
 
 function update_scales(){

@@ -22,12 +22,13 @@ function BubbledRuns() {
             this.run_time = run.run_time
             this.run_time_end = run.run_time
         } 
+
         // else {
         //     this.run_time = avg_date(this.run_time, run.run_time)
         // }
-        if (this.run_time <= run.run_time) {
-            this.run_time = run.run_time
-        }
+        // if (this.run_time >= run.run_time) {
+        //     this.run_time = run.run_time
+        // }
 
         this.average_min_per_mi = avg_pace(this.distance_miles, this.average_min_per_mi, 
             run.distance_miles, run.average_min_per_mi)
@@ -114,6 +115,8 @@ BubbledRuns.pop = function(bubbles, days) {
                     one_bubbles.push(br)
                 });
                 deleted_indexes.push(i)
+
+
             }
         } 
     });
@@ -123,6 +126,39 @@ BubbledRuns.pop = function(bubbles, days) {
         bubbles.splice(deleted_indexes[i], 1); 
     }
     one_bubbles.sort(compare)
+    return one_bubbles
+}
+
+// This wont work because of the splice not in reverse...
+// BubbledRuns.pop = function(bubbles, days) {
+//     var one_bubbles = []
+//     deleted_indexes = []
+//     bubbles.forEach(function(bubble, i){
+//         if(bubble.runs.length > 1) { 
+//             if(diff_days(bubble.runs[0].run_time, bubble.runs[bubble.runs.length-1].run_time) >= days) {
+//                one_bubbles = one_bubbles.concat(BubbledRuns.pop_index(bubbles, i))
+//             }
+//         } 
+//     });
+
+//     one_bubbles.sort(compare)
+//     return one_bubbles
+// }
+
+                
+BubbledRuns.pop_index = function(bubbles, index) {
+    var popped_bub = bubbles[index]
+    var one_bubbles = []
+    popped_bub.runs.forEach(function(run) {
+        var br = new BubbledRuns()
+        br.addRun(run)
+        br.start_bub = popped_bub
+        one_bubbles.push(br)
+    });
+
+    bubbles[index].end_bub = bubbles[index]
+    bubbles.splice(index, 1)
+
     return one_bubbles
 }
 
