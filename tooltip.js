@@ -8,22 +8,31 @@ function highlight(d){
         .style("fill", function(){ return d3.rgb(206, 112, 88) })
 
     var coord = (d3.transform(d3.select(this).attr("transform"))).translate
-
+    console.log(d3.select(this).attr("r"))
     var x = coord[0]
     var y = coord[1]
 
     var tooltip = d3.select("#tooltip").classed("hidden", false);
     var tooltipRect = tooltip.node().getBoundingClientRect()
 
-    var x = d3.event.pageX
-    var y = d3.event.pageY
+    // var x = d3.event.pageX
+    // var y = d3.event.pageY
 
     tooltip
         .style("left", (x-tooltipRect.width/2.5) + "px")
         .style("top", y-tooltipRect.height+ "px")
 
     tooltip.html(d.tooltip_html())
+
+    var sel = d3.select(this);
+    sel.moveToFront();
 }
+
+d3.selection.prototype.moveToFront = function() {
+    return this.each(function(){
+        this.parentNode.appendChild(this);
+    });
+};
 
 
 function unhighlight(d) {

@@ -162,7 +162,7 @@ function get_runs_window(all_runs){
 // Pop the bubbles after less than 500 
 function calculate_bubble_thresh(){
     var diff = diff_days(x_scale.domain()[0], x_scale.domain()[1])
-    threshold = 5
+    threshold = 7
     if (diff < 730)
         threshold = .0001
 
@@ -194,7 +194,7 @@ function draw_bubbles(bubbles){
             if (d.start_bub) {
                 return translate(d.start_bub)
             } else {
-                console.log("NOOO")
+                console.log("Transform")
             }
         })
         // .attr("transform", translate_runs)

@@ -4,6 +4,7 @@ function BubbledRuns() {
     this.elevation = 0
     this.total_elevation_gain = 0
     this.run_time
+    this.run_time_start
     this.run_time_end
     this.runs = []
     this.name = ""
@@ -20,15 +21,16 @@ function BubbledRuns() {
         if (!(this.runs.length)){
             this.name = run.name
             this.run_time = run.run_time
+            this.run_time_start = run.run_time
             this.run_time_end = run.run_time
         } 
-
         // else {
         //     this.run_time = avg_date(this.run_time, run.run_time)
         // }
-        // if (this.run_time >= run.run_time) {
-        //     this.run_time = run.run_time
-        // }
+
+        if (this.run_time_start >= run.run_time) {
+            this.run_time_start = run.run_time
+        }
 
         this.average_min_per_mi = avg_pace(this.distance_miles, this.average_min_per_mi, 
             run.distance_miles, run.average_min_per_mi)
@@ -52,7 +54,7 @@ function BubbledRuns() {
         } 
         var date_time = (month[this.run_time.getMonth()])+" "+this.run_time.getDate() + " " + this.run_time_end.getFullYear()
         if(this.runs.length > 1){
-            date_time = (month[this.run_time.getMonth()])+" "+this.run_time.getDate() + " - " + this.run_time_end.getDate() + " " + this.run_time_end.getFullYear()
+            date_time = (month[this.run_time_start.getMonth()])+" "+this.run_time_start.getDate() + " - " + this.run_time_end.getDate() + " " + this.run_time_end.getFullYear()
         }
         return "<p><span id=\"run_date\">"+date_time+"</span> \
             <p><strong><a target=\"_blank\" href=\"http://\"><span id=\"run_title\">"+name+"</span></a></strong></p> \
