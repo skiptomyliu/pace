@@ -30,7 +30,6 @@ d3.json("content3.json",
             });
             assert.ok(bubbles.length == 5, "success" );
             assert.ok(bubbles[0].runs[0].constructor.name != 'BubbledRuns')
-            // assert.ok(bubbles[0].runs)
         });
 
         QUnit.test("pop length test", function(assert) {

@@ -12,11 +12,28 @@ p {
     /*font-size: 0.875em;  14px/16=0.875em */
 }
 
-
-
 #stats p {
   font: 12px sans-serif;
     /*font-size: 0.875em;  14px/16=0.875em */
+}
+
+div#stats {
+  width: 85%;
+  float: left;
+}
+
+div#stats_pace {
+  float: left;
+}
+
+div#stats_elevation {
+  margin-left: 5%;
+  float:left;
+}
+div#stats_pr { 
+  margin-left: 5%;
+  float: left;
+
 }
 
 .axis text {
