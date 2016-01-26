@@ -1,4 +1,6 @@
 # pace
+![](./bubbles.gif)
+
 Visualizing my running data.  Datasource from Strava's API
 
 Zooming out, bubbles the runs into larger bubbles.
