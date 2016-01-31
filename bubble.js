@@ -117,8 +117,6 @@ BubbledRuns.pop = function(bubbles, days) {
                     one_bubbles.push(br)
                 });
                 deleted_indexes.push(i)
-
-
             }
         } 
     });
