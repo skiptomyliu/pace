@@ -57,6 +57,7 @@ div#stats_pr {
   opacity: 0.6;
   stroke-width: .6px;
   stroke: lightgrey;
+  stroke-dasharray: 2,2;
 }
 
 .axis .minor {
