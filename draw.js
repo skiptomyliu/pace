@@ -279,15 +279,26 @@ function canvas_viz() {
     Draw axis
 
     */
-    y_axis = d3.svg.axis().scale(y_scale).orient("left")
+
+    y_axis = d3.svg.axis()
+        .scale(y_scale)
+        .orient("left")
+        // .ticks(5)
+        .tickSize(-10000, 0, 0)
         .tickFormat(function(d){ return min_per_mi_str(d)} )
     var yaxisg = d3.select("svg g").append("g")
+
         .attr("id", "yAxisG")
         .attr("class", "y axis")
         .attr("transform", "translate("+margin+",0)")
         .call(y_axis)
 
-    x_axis = d3.svg.axis().scale(x_scale).orient("bottom").ticks(10).tickSize(20,0)
+    x_axis = d3.svg.axis()
+        .scale(x_scale)
+        .orient("bottom")
+        .ticks(10)
+        .tickSize(20,0)
+
     var xaxisg = d3.select("svg g").append("g")
         .attr("id", "xAxisG")
         .attr("class", "x axis")

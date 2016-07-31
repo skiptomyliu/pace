@@ -46,10 +46,17 @@ div#stats_pr {
   stroke-width: 2.5px;
   shape-rendering: crispEdges;
 }
- .axis line {
+
+.axis line {
   fill: none;
   stroke: green;
   stroke-width: 1.6px;
+}
+
+.tick line{
+  opacity: 0.6;
+  stroke-width: .6px;
+  stroke: lightgrey;
 }
 
 .axis .minor {
