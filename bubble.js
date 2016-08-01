@@ -48,6 +48,7 @@ function BubbledRuns() {
     }
 
     this.tooltip_html = function(){
+        var month = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
         var name = ""
         if(this.runs.length < 2){
             name = this.name

@@ -183,6 +183,7 @@ function draw_bubbles(bubbles){
 
     gcircles.enter()
         .append("circle")
+        // .attr("id", function(d,i) { return d.run_time })
         .on("mouseover", highlight)
         .on("mouseout", unhighlight)
         .on("click", function(b,i) {
@@ -228,9 +229,11 @@ function draw_bubbles(bubbles){
     }
 }
 
+// Begin Elevation
 function translate_elevations(d,i){
     return "translate("+x_scale(d.run_time)+","+(h-y_scale_elevation(max_elevation_gain_f-d.total_elevation_gain))+")"
 }
+
 
 function draw_elevation_chart(bubbles){
     var svg = d3.select("#elevationG")
@@ -238,6 +241,8 @@ function draw_elevation_chart(bubbles){
     
     grects.enter()
         .append("rect")
+        // .on("mouseover", highlight)
+        // .on("mouseout", unhighlight)
         .style("stroke-width", "1px")
         .style("fill", d3.rgb(122, 195,106))
         .style("opacity", .50)
