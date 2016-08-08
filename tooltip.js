@@ -32,7 +32,6 @@ function highlight(d){
     d3.selectAll("#"+id_selected)
         .classed("active", true)
         .style("fill", function(){ return d3.rgb(206, 112, 88) })
-        // .remove()
 
     var coord = (d3.transform(d3.select(this).attr("transform"))).translate
     console.log(d3.select(this).attr("id"))
@@ -60,11 +59,7 @@ d3.selection.prototype.moveToFront = function() {
 };
 
 
-function unhighlight(d) {
-    // id_selected = d3.select(this).attr("id")
-    console.log(d.id)
-    
-
+function unhighlight(d) {    
     d3.select("#tooltip").classed("hidden", true)
     d3.select(this).classed("inactive",true)
 
