@@ -8,6 +8,7 @@ function BubbledRuns() {
     this.run_time_end
     this.runs = []
     this.name = ""
+    this.id = ""
     
     this.start_bub
     this.end_bub
@@ -23,6 +24,7 @@ function BubbledRuns() {
             this.run_time = run.run_time
             this.run_time_start = run.run_time
             this.run_time_end = run.run_time
+            this.id = (run.id).toString()
         } 
         // else {
         //     this.run_time = avg_date(this.run_time, run.run_time)

@@ -24,12 +24,18 @@ function calc_tooltip_ypos(x,y,rect){
 
 
 function highlight(d){
-    d3.select(d3.event.target)
-        .classed("active",true)
+    // d3.select(d3.event.target)
+    //     .classed("active",true)
+    //     .style("fill", function(){ return d3.rgb(206, 112, 88) })
+
+    id_selected = d3.select(this).attr("id")
+    d3.selectAll("#"+id_selected)
+        .classed("active", true)
         .style("fill", function(){ return d3.rgb(206, 112, 88) })
+        // .remove()
 
     var coord = (d3.transform(d3.select(this).attr("transform"))).translate
-    // console.log(d3.select(this).attr("r"))
+    console.log(d3.select(this).attr("id"))
     var x = coord[0]
     var y = coord[1]    
 
@@ -55,11 +61,22 @@ d3.selection.prototype.moveToFront = function() {
 
 
 function unhighlight(d) {
+    // id_selected = d3.select(this).attr("id")
+    console.log(d.id)
+    
+
     d3.select("#tooltip").classed("hidden", true)
     d3.select(this).classed("inactive",true)
-    d3.select(d3.event.target).transition().duration(500)
+
+    all = d3.selectAll("#"+d.id)
+        .transition().duration(500)
         .style("fill", function(d){
-            return color_scale(d.distance_miles)
+            if(this.tagName=="circle") {
+                return color_scale(d.distance_miles)
+            }
+            else if (this.tagName=="rect") {
+                return d3.rgb(122, 195, 106)
+            }
         })
 }
 
