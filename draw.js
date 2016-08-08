@@ -183,7 +183,7 @@ function draw_bubbles(bubbles){
 
     gcircles.enter()
         .append("circle")
-        // .attr("id", function(d,i) { return d.run_time })
+        .attr("id", function(d,i) { return d.id })
         .on("mouseover", highlight)
         .on("mouseout", unhighlight)
         .on("click", function(b,i) {
@@ -241,6 +241,7 @@ function draw_elevation_chart(bubbles){
     
     grects.enter()
         .append("rect")
+        .attr("id", function(d,i) { return d.id })
         // .on("mouseover", highlight)
         // .on("mouseout", unhighlight)
         .style("stroke-width", "1px")
