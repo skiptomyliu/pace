@@ -62,6 +62,44 @@ function update_ranges(run_data){
     });
 }
 
+function calculate_weekly_mileage(runs) {
+    function SortByDate(a, b){
+      return b.run_time.getTime() - a.run_time.getTime()
+    }
+    runs.sort(SortByDate);
+
+    weekly_max_mileage = 0
+    weekly_avg_mileage = 0
+    var cur_mileage = 0
+    var cur_week = -1
+    var now_week = -1
+    var count = 0
+    runs.forEach(function (run) {
+        // console.log(run.run_time.getWeek())
+        console.log(run.run_time.getWeek())
+        if (cur_week != now_week) {
+            weekly_avg_mileage = weekly_avg_mileage + (cur_mileage - weekly_avg_mileage)/count;
+            console.log("average: ")
+            console.log(weekly_avg_mileage)
+            cur_mileage = 0
+            now_week = cur_week
+        }
+        cur_mileage += run.distance_miles
+
+        if (cur_mileage > weekly_max_mileage){
+            weekly_max_mileage = cur_mileage
+            console.log("max")
+            console.log(weekly_max_mileage)
+        }
+
+        cur_week = run.run_time.getWeek()
+        count++;
+        // console.log(run.distance)
+        // console.log(run.run_time.getWeek())
+    }); 
+
+}
+
 function bucket_runs(runs) {
     runs_5k = runs.filter(function (data){
         return data.distance >= 4988 && data.distance <= 5150; // 3.1 to 3.2
@@ -78,6 +116,13 @@ function bucket_runs(runs) {
     runs_mar = runs.filter(function (data){
         return data.distance >= 42003.88 && data.distance <= 43452.3; // 26.1 to 27
     });
+
+    Date.prototype.getWeek = function() {
+        var onejan = new Date(this.getFullYear(),0,1);
+        var today = new Date(this.getFullYear(),this.getMonth(),this.getDate());
+        var dayOfYear = ((today - onejan +1)/86400000);
+        return Math.ceil(dayOfYear/7)
+    };
 
     fastest_5k = d3.min(runs_5k, function(run){
         return run.average_min_per_mi
@@ -123,7 +168,7 @@ function draw_it(data) {
     });
     // all_runs = all_runs.concat(run_data)
     // all_runs.sort(compare);
-    bucket_runs(all_runs)
+    // bucket_runs(all_runs)
     update_ranges(all_runs)
 
     update(all_runs)
@@ -135,6 +180,7 @@ function draw_it(data) {
 function update(runs) {
     update_ranges(runs)
     bucket_runs(runs)
+    calculate_weekly_mileage(runs)
     update_display_averages()
     update_scales()
     update_axis()
@@ -364,5 +410,10 @@ function update_display_averages() {
     d3.select("#pace_pr_10k").text(min_per_mi_str(fastest_10k))
     d3.select("#pace_pr_half").text(min_per_mi_str(fastest_half))
     d3.select("#pace_pr_full").text(min_per_mi_str(fastest_full))
+    d3.select("#pace_pr_week").text(weekly_max_mileage.toFixed(2))
+    d3.select("#pace_pr_week_avg").text(weekly_avg_mileage.toFixed(2))
+    
+    // d3.select("#pace_pr_monthly").text(min_per_mi_str(fastest_full))
+    
 }
 
