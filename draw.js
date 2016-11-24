@@ -63,6 +63,13 @@ function update_ranges(run_data){
 }
 
 function calculate_weekly_mileage(runs) {
+    Date.prototype.getWeek = function() {
+        var onejan = new Date(this.getFullYear(),0,1);
+        var today = new Date(this.getFullYear(),this.getMonth(),this.getDate());
+        var dayOfYear = ((today - onejan +1)/86400000);
+        return Math.ceil(dayOfYear/7)
+    };
+    
     function SortByDate(a, b){
       return b.run_time.getTime() - a.run_time.getTime()
     }
@@ -75,7 +82,6 @@ function calculate_weekly_mileage(runs) {
     var now_week = -1
     var count = 0
     runs.forEach(function (run) {
-        // console.log(run.run_time.getWeek())
         console.log(run.run_time.getWeek())
         if (cur_week != now_week) {
             weekly_avg_mileage = weekly_avg_mileage + (cur_mileage - weekly_avg_mileage)/count;
@@ -116,13 +122,6 @@ function bucket_runs(runs) {
     runs_mar = runs.filter(function (data){
         return data.distance >= 42003.88 && data.distance <= 43452.3; // 26.1 to 27
     });
-
-    Date.prototype.getWeek = function() {
-        var onejan = new Date(this.getFullYear(),0,1);
-        var today = new Date(this.getFullYear(),this.getMonth(),this.getDate());
-        var dayOfYear = ((today - onejan +1)/86400000);
-        return Math.ceil(dayOfYear/7)
-    };
 
     fastest_5k = d3.min(runs_5k, function(run){
         return run.average_min_per_mi

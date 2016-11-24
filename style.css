@@ -20,6 +20,7 @@ p {
 div#stats {
   width: 85%;
   float: left;
+
 }
 
 div#stats_pace {
@@ -30,10 +31,15 @@ div#stats_elevation {
   margin-left: 5%;
   float:left;
 }
+
 div#stats_pr { 
   margin-left: 5%;
   float: left;
+}
 
+div#stats_date {
+  margin-left: 5%;
+  float: left;
 }
 
 .axis text {
