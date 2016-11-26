@@ -24,10 +24,19 @@ var x_scale
 var y_scale
 
 function update_ranges(run_data){
-    max_average_speed = d3.max(run_data, function(el){
-        return el.average_min_per_mi
-    });
 
+    function SortBySpeed(a, b){
+        return a.average_min_per_mi - b.average_min_per_mi
+    }
+    var run_data_copy = run_data.slice();
+    fastest_run = run_data_copy.sort(SortBySpeed)[0]
+    slowest_run = run_data_copy[run_data_copy.length-1]
+
+
+    max_average_speed = d3.max(run_data, function(el){
+        return el.average_min_per_mi 
+    });
+    
     min_average_speed = d3.min(run_data, function(el){
         return el.average_min_per_mi
     })
@@ -42,6 +51,10 @@ function update_ranges(run_data){
 
     total_elevation_gain = d3.sum(run_data, function(el){
         return parseFloat(el.total_elevation_gain)
+    })
+
+    total_mileage = d3.sum(run_data, function(el){
+       return el.distance_miles
     })
 
     max_elevation_gain = d3.max(run_data, function(el){
@@ -62,18 +75,25 @@ function update_ranges(run_data){
     });
 }
 
-function calculate_weekly_mileage(runs) {
+
+function calculate_monthly_mileage(runs){
+
+}
+
+
+
+function calculate_weekly_mileage(runs, year) {
     Date.prototype.getWeek = function() {
         var onejan = new Date(this.getFullYear(),0,1);
         var today = new Date(this.getFullYear(),this.getMonth(),this.getDate());
         var dayOfYear = ((today - onejan +1)/86400000);
         return Math.ceil(dayOfYear/7)
     };
-    
+
     function SortByDate(a, b){
       return b.run_time.getTime() - a.run_time.getTime()
     }
-    runs.sort(SortByDate);
+    // runs.sort(SortByDate);
 
     weekly_max_mileage = 0
     weekly_avg_mileage = 0
@@ -82,28 +102,26 @@ function calculate_weekly_mileage(runs) {
     var now_week = -1
     var count = 0
     runs.forEach(function (run) {
-        console.log(run.run_time.getWeek())
-        if (cur_week != now_week) {
-            weekly_avg_mileage = weekly_avg_mileage + (cur_mileage - weekly_avg_mileage)/count;
-            console.log("average: ")
-            console.log(weekly_avg_mileage)
-            cur_mileage = 0
-            now_week = cur_week
-        }
-        cur_mileage += run.distance_miles
+        var sd = new Date(); sd.setFullYear(year, 0, 1)
+        var ed = new Date(); ed.setFullYear(year+1, 0, 1)
 
-        if (cur_mileage > weekly_max_mileage){
-            weekly_max_mileage = cur_mileage
-            console.log("max")
-            console.log(weekly_max_mileage)
-        }
+        if(run.run_time > sd  && run.run_time < ed){
+            // console.log(run.run_time)
+            if (cur_week != now_week) {
+                weekly_avg_mileage = weekly_avg_mileage + (cur_mileage - weekly_avg_mileage)/count;
+                now_week = cur_week
+                cur_mileage = 0
+                count = 0
+            }
+            cur_mileage += run.distance_miles
 
-        cur_week = run.run_time.getWeek()
-        count++;
-        // console.log(run.distance)
-        // console.log(run.run_time.getWeek())
+            if (cur_mileage > weekly_max_mileage){
+                weekly_max_mileage = cur_mileage
+            }
+            cur_week = run.run_time.getWeek()
+            count++;
+        }
     }); 
-
 }
 
 function bucket_runs(runs) {
@@ -179,7 +197,7 @@ function draw_it(data) {
 function update(runs) {
     update_ranges(runs)
     bucket_runs(runs)
-    calculate_weekly_mileage(runs)
+    calculate_weekly_mileage(runs, 2016)
     update_display_averages()
     update_scales()
     update_axis()
@@ -398,7 +416,7 @@ function update_axis(){
 }
 
 function update_display_averages() {
-    d3.select("#pace_fastest").text(min_per_mi_str(min_average_speed))
+    d3.select("#pace_fastest").text(min_per_mi_str(fastest_run.average_min_per_mi))
     d3.select("#pace_slowest").text(min_per_mi_str(max_average_speed))
     d3.select("#pace_avg").text(min_per_mi_str(average_speed))
     d3.select("#pace_farthest").text(max_distance_miles.toFixed(2))
@@ -411,6 +429,8 @@ function update_display_averages() {
     d3.select("#pace_pr_full").text(min_per_mi_str(fastest_full))
     d3.select("#pace_pr_week").text(weekly_max_mileage.toFixed(2))
     d3.select("#pace_pr_week_avg").text(weekly_avg_mileage.toFixed(2))
+    d3.select("#pace_total_mileage").text(total_mileage.toFixed(2))
+    
     
     // d3.select("#pace_pr_monthly").text(min_per_mi_str(fastest_full))
     
